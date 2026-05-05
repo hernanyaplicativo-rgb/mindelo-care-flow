@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TriagemRouteImport } from './routes/triagem'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
+import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as AgendamentosRouteImport } from './routes/agendamentos'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const TriagemRoute = TriagemRouteImport.update({
 const ParceriasRoute = ParceriasRouteImport.update({
   id: '/parcerias',
   path: '/parcerias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileRoute = MobileRouteImport.update({
+  id: '/mobile',
+  path: '/mobile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendamentosRoute = AgendamentosRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/triagem': typeof TriagemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/triagem': typeof TriagemRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/triagem': typeof TriagemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agendamentos' | '/parcerias' | '/triagem'
+  fullPaths: '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agendamentos' | '/parcerias' | '/triagem'
-  id: '__root__' | '/' | '/agendamentos' | '/parcerias' | '/triagem'
+  to: '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
+  id: '__root__' | '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendamentosRoute: typeof AgendamentosRoute
+  MobileRoute: typeof MobileRoute
   ParceriasRoute: typeof ParceriasRoute
   TriagemRoute: typeof TriagemRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/parcerias'
       fullPath: '/parcerias'
       preLoaderRoute: typeof ParceriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile': {
+      id: '/mobile'
+      path: '/mobile'
+      fullPath: '/mobile'
+      preLoaderRoute: typeof MobileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agendamentos': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendamentosRoute: AgendamentosRoute,
+  MobileRoute: MobileRoute,
   ParceriasRoute: ParceriasRoute,
   TriagemRoute: TriagemRoute,
 }
