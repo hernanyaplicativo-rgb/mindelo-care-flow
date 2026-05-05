@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Link } from "@tanstack/react-router";
 import { Activity, Calendar, Building2, Users, TrendingUp, AlertCircle, Sparkles, Stethoscope } from "lucide-react";
+import clinicImg from "@/assets/urgimed-clinic.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,13 +38,15 @@ function Index() {
     <DashboardLayout title="Recepção Urgimed" subtitle="Mindelo · São Vicente · Cabo Verde">
       <div className="space-y-6">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl p-6 lg:p-8 text-primary-foreground" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-elegant)" }}>
+        <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[340px] flex items-end" style={{ boxShadow: "var(--shadow-elegant)" }}>
+          <img src={clinicImg} alt="Clínica Urgimed Health & Hospitality, Mindelo" className="absolute inset-0 size-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/85 via-primary/50 to-transparent" />
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium backdrop-blur">
               <Stethoscope className="size-3.5" /> Health & Hospitality Mindelo
             </div>
             <h2 className="mt-4 text-3xl lg:text-4xl font-bold tracking-tight">Triagem IA para Turistas</h2>
-            <p className="mt-2 text-primary-foreground/85 text-sm lg:text-base">
+            <p className="mt-2 text-primary-foreground/90 text-sm lg:text-base">
               Recepção virtual operando 24/7. Hotéis enviam pacientes via QR code, a IA atribui especialidade e prioridade, e o sistema bloqueia agendamentos duplicados.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -55,8 +58,6 @@ function Index() {
               </Link>
             </div>
           </div>
-          <div className="absolute -right-16 -bottom-16 size-72 rounded-full bg-primary-foreground/10 blur-2xl" />
-          <div className="absolute right-10 top-6 size-32 rounded-full bg-primary-foreground/5" />
         </section>
 
         {/* Stats */}
