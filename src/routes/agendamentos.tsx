@@ -1,91 +1,208 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
-import { Calendar, Clock, Lock, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Clock, Lock, Sparkles, Stethoscope, Microscope, Search } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export const Route = createFileRoute("/agendamentos")({
   head: () => ({
     meta: [
-      { title: "Agendamentos VIP — Urgimed" },
-      { name: "description", content: "Agendamento VIP de odontologia e especialidades em Mindelo." },
+      { title: "Agendamento Inteligente — Urgimed" },
+      { name: "description", content: "Sistema centralizado de agendamentos para Clínica e Health Hospitality." },
     ],
   }),
   component: AgendamentosPage,
 });
 
-const slots = [
-  { time: "09:00", available: true, vip: true },
-  { time: "09:30", available: false, vip: true },
-  { time: "10:00", available: true, vip: true },
-  { time: "10:30", available: true, vip: false },
-  { time: "11:00", available: false, vip: true },
-  { time: "11:30", available: true, vip: true },
-  { time: "14:00", available: true, vip: true },
-  { time: "14:30", available: true, vip: false },
-  { time: "15:00", available: false, vip: true },
-  { time: "15:30", available: true, vip: true },
+type Category = "Consultas" | "Exames" | "Domicílio";
+
+const professionals = [
+  { name: "Dr. Júlio Wahnon", specialty: "Clínica Geral", category: "Consultas" },
+  { name: "Dra. Alicia Wahnon", specialty: "Clínica Geral", category: "Consultas" },
+  { name: "Dr. Lucien Attier", specialty: "Cirurgia Geral", category: "Consultas" },
+  { name: "Dr. Ernesto Hernandes", specialty: "Cirurgia Geral", category: "Consultas" },
+  { name: "Dr. Fernando Lopes", specialty: "Cardiologia", category: "Consultas" },
+  { name: "Dra. Carlina da Luz Santos", specialty: "Pediatria", category: "Consultas" },
+  { name: "Dra. Mª Teresa Martins", specialty: "Ginecologia / Obstetrícia", category: "Consultas" },
+  { name: "Dr. Paulo Semedo Freire", specialty: "Ortopedia", category: "Consultas" },
+  
+  { name: "Ecografia 3D/4D", specialty: "Imagem (Aparelho Ultrassonografia)", category: "Exames" },
+  { name: "Raio X", specialty: "Imagem (Sala Plomada)", category: "Exames" },
+  { name: "Prova de Esforço", specialty: "Cardiologia (Passadeira Ergonômica)", category: "Exames" },
+  { name: "Endoscopia Digestiva Alta", specialty: "Endoscopia (Torre & Recobro)", category: "Exames" },
+
+  { name: "Enfermagem (Suturas/Pensos)", specialty: "Médico no Lar", category: "Domicílio" },
+  { name: "Vacinação / Soroterapia", specialty: "Médico no Lar", category: "Domicílio" },
 ];
 
+// Gera slots dinâmicos baseados no horário da clínica (08:00 - 22:00)
+const generateSlots = () => {
+  const slots = [];
+  const hourStart = 8;
+  const hourEnd = 22;
+  
+  for (let h = hourStart; h < hourEnd; h++) {
+    slots.push({ time: `${h.toString().padStart(2, '0')}:00`, available: Math.random() > 0.3, express: Math.random() > 0.8 });
+    slots.push({ time: `${h.toString().padStart(2, '0')}:30`, available: Math.random() > 0.3, express: Math.random() > 0.8 });
+  }
+  return slots;
+};
+
 function AgendamentosPage() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<Category>("Consultas");
+  const [search, setSearch] = useState("");
+  const [selectedItem, setSelectedItem] = useState<typeof professionals[0] | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  
+  // Memoizamos os slots para não recalcular a cada render
+  const currentSlots = useMemo(() => generateSlots(), [selectedItem]);
+
+  const filteredItems = professionals.filter(p => 
+    p.category === activeCategory && 
+    (p.name.toLowerCase().includes(search.toLowerCase()) || p.specialty.toLowerCase().includes(search.toLowerCase()))
+  );
+
   return (
-    <DashboardLayout title="Agendamentos VIP" subtitle="Odontologia · Anti-conflito ativo">
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-xl bg-card border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Dr. Almeida — Odontologia VIP</h3>
-              <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5 mt-1">
-                <Calendar className="size-3" /> Quarta, 5 de maio · Medicentro
-              </p>
-            </div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-full">
-              <Lock className="size-3" /> Trigger SQL ativo
-            </span>
+    <DashboardLayout title="Agendamento Inteligente" subtitle="Clínica Sede · Alocação de Recursos e Especialistas">
+      <div className="grid lg:grid-cols-3 gap-6 max-w-7xl">
+        
+        {/* Painel Esquerdo: Seleção de Especialidade/Exame */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="flex gap-2 bg-muted/40 p-1 rounded-xl border">
+            {["Consultas", "Exames", "Domicílio"].map(cat => (
+              <button 
+                key={cat}
+                onClick={() => { setActiveCategory(cat as Category); setSelectedItem(null); setSelectedTime(null); }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  activeCategory === cat ? "bg-background shadow-sm border text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {slots.map(s => {
-              const isSel = selected === s.time;
-              return (
+
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <input 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar médico ou exame..."
+              className="w-full bg-card border rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div className="rounded-xl border bg-card overflow-hidden h-[500px] flex flex-col" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="p-4 border-b bg-muted/20">
+              <h3 className="font-semibold text-sm">Diretório Urgimed</h3>
+            </div>
+            <div className="overflow-y-auto p-2 space-y-1 flex-1">
+              {filteredItems.map(item => (
                 <button
-                  key={s.time}
-                  disabled={!s.available}
-                  onClick={() => setSelected(s.time)}
-                  className={`relative rounded-lg border p-3 text-sm transition ${
-                    !s.available ? "bg-muted text-muted-foreground line-through cursor-not-allowed border-dashed" :
-                    isSel ? "bg-primary text-primary-foreground border-primary" :
-                    "bg-card hover:border-primary hover:text-primary"
+                  key={item.name}
+                  onClick={() => { setSelectedItem(item); setSelectedTime(null); }}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${
+                    selectedItem?.name === item.name 
+                      ? "bg-primary/5 border-primary/30" 
+                      : "border-transparent hover:bg-muted/50"
                   }`}
                 >
-                  <Clock className="size-3 inline mr-1" />
-                  {s.time}
-                  {s.vip && s.available && <Sparkles className="size-3 absolute top-1 right-1 text-primary" />}
+                  <div className="font-medium text-sm flex items-center justify-between">
+                    {item.name}
+                    {activeCategory === "Exames" && <Microscope className="size-3.5 text-primary" />}
+                    {activeCategory === "Consultas" && <Stethoscope className="size-3.5 text-primary" />}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{item.specialty}</div>
                 </button>
-              );
-            })}
-          </div>
-          <div className="mt-6 p-4 rounded-lg bg-accent/40 border text-xs text-muted-foreground">
-            <strong className="text-foreground">Bloqueio inteligente:</strong> Horários riscados estão reservados ou bloqueados (schedule_blocks). Trigger PostgreSQL impede dupla marcação para o mesmo profissional/período.
+              ))}
+              {filteredItems.length === 0 && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Nenhum resultado encontrado.</div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border p-6 bg-gradient-to-br from-accent/40 to-card" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h4 className="font-semibold">Confirmação VIP</h4>
-          {selected ? (
-            <div className="mt-4 space-y-3 text-sm">
-              <div><span className="text-muted-foreground text-xs">Paciente</span><div className="font-medium">Marie Dubois</div></div>
-              <div><span className="text-muted-foreground text-xs">Hotel</span><div className="font-medium">Foya Branca Resort</div></div>
-              <div><span className="text-muted-foreground text-xs">Especialidade</span><div className="font-medium">Odontologia VIP</div></div>
-              <div><span className="text-muted-foreground text-xs">Horário</span><div className="font-bold text-lg text-primary">{selected}</div></div>
-              <button className="w-full rounded-lg py-2.5 text-sm font-semibold text-primary-foreground" style={{ background: "var(--gradient-primary)" }}>
-                Confirmar Agendamento
-              </button>
+        {/* Painel Direito: Slots de Tempo e Confirmação */}
+        <div className="lg:col-span-2 space-y-6">
+          {selectedItem ? (
+            <div className="rounded-xl bg-card border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-xl">{selectedItem.name}</h3>
+                  <p className="text-sm text-muted-foreground inline-flex items-center gap-1.5 mt-1">
+                    <Calendar className="size-4 text-primary" /> Segunda a Sexta · 08:00 às 22:00
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-full">
+                  <Lock className="size-3" /> Anti-conflito (Recurso)
+                </span>
+              </div>
+              
+              <div className="mt-8">
+                <div className="flex justify-between items-end mb-4">
+                  <h4 className="text-sm font-semibold">Horários Disponíveis (Hoje)</h4>
+                  <div className="flex items-center gap-3 text-[10px] uppercase font-semibold text-muted-foreground">
+                    <span className="flex items-center gap-1"><div className="size-2 bg-card border rounded-full"></div> Livre</span>
+                    <span className="flex items-center gap-1"><div className="size-2 bg-muted border-dashed border rounded-full"></div> Ocupado</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                  {currentSlots.map(s => {
+                    const isSel = selectedTime === s.time;
+                    return (
+                      <button
+                        key={s.time}
+                        disabled={!s.available}
+                        onClick={() => setSelectedTime(s.time)}
+                        className={`relative rounded-lg border py-2.5 text-sm font-medium transition ${
+                          !s.available ? "bg-muted/50 text-muted-foreground/50 border-dashed cursor-not-allowed" :
+                          isSel ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20" :
+                          "bg-card hover:border-primary/50 hover:bg-primary/5"
+                        }`}
+                      >
+                        {s.time}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {activeCategory === "Exames" && (
+                <div className="mt-6 p-4 rounded-lg bg-warning/10 border border-warning/20 text-xs text-warning-foreground flex items-start gap-3">
+                  <Lock className="size-4 shrink-0 text-warning mt-0.5" />
+                  <div>
+                    <strong className="block font-semibold">Dependência de Equipamento</strong>
+                    O agendamento de <em>{selectedItem.name}</em> reserva simultaneamente o equipamento {selectedItem.specialty} na base de dados, prevenindo overbooking da máquina.
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted-foreground">Selecione um horário disponível.</p>
+            <div className="rounded-xl bg-card border h-full min-h-[400px] flex flex-col items-center justify-center text-muted-foreground p-6">
+              <Calendar className="size-12 mb-4 opacity-20" />
+              <p>Selecione um profissional ou exame no painel esquerdo</p>
+              <p className="text-xs mt-2 text-center max-w-sm">
+                O sistema Urgimed garante que médicos e recursos físicos (como salas de Raio-X ou blocos cirúrgicos) não sofram duplo agendamento.
+              </p>
+            </div>
+          )}
+
+          {/* Checkout Block */}
+          {selectedTime && selectedItem && (
+            <div className="rounded-xl border p-5 bg-gradient-to-r from-accent/30 via-card to-card flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Resumo do Agendamento</p>
+                <p className="font-semibold mt-1">{selectedItem.name}</p>
+                <p className="text-sm text-primary font-bold">Hoje às {selectedTime}</p>
+              </div>
+              <button className="w-full sm:w-auto px-8 py-3 rounded-xl font-semibold text-primary-foreground transition-all hover:opacity-90 shadow-md" style={{ background: "var(--gradient-primary)" }}>
+                Confirmar Marcação
+              </button>
+            </div>
           )}
         </div>
       </div>
     </DashboardLayout>
   );
 }
+
+export default AgendamentosPage;

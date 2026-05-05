@@ -10,14 +10,30 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TriagemRouteImport } from './routes/triagem'
+import { Route as TelemedicinaRouteImport } from './routes/telemedicina'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
 import { Route as MobileRouteImport } from './routes/mobile'
+import { Route as EscalaRouteImport } from './routes/escala'
+import { Route as DitadoRouteImport } from './routes/ditado'
+import { Route as ComunicacaoRouteImport } from './routes/comunicacao'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgendamentosRouteImport } from './routes/agendamentos'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TriagemRoute = TriagemRouteImport.update({
   id: '/triagem',
   path: '/triagem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TelemedicinaRoute = TelemedicinaRouteImport.update({
+  id: '/telemedicina',
+  path: '/telemedicina',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParceriasRoute = ParceriasRouteImport.update({
@@ -28,6 +44,26 @@ const ParceriasRoute = ParceriasRouteImport.update({
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscalaRoute = EscalaRouteImport.update({
+  id: '/escala',
+  path: '/escala',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DitadoRoute = DitadoRouteImport.update({
+  id: '/ditado',
+  path: '/ditado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComunicacaoRoute = ComunicacaoRouteImport.update({
+  id: '/comunicacao',
+  path: '/comunicacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendamentosRoute = AgendamentosRouteImport.update({
@@ -44,38 +80,96 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/analytics': typeof AnalyticsRoute
+  '/comunicacao': typeof ComunicacaoRoute
+  '/ditado': typeof DitadoRoute
+  '/escala': typeof EscalaRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
+  '/portal': typeof PortalRoute
+  '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/analytics': typeof AnalyticsRoute
+  '/comunicacao': typeof ComunicacaoRoute
+  '/ditado': typeof DitadoRoute
+  '/escala': typeof EscalaRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
+  '/portal': typeof PortalRoute
+  '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agendamentos': typeof AgendamentosRoute
+  '/analytics': typeof AnalyticsRoute
+  '/comunicacao': typeof ComunicacaoRoute
+  '/ditado': typeof DitadoRoute
+  '/escala': typeof EscalaRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
+  '/portal': typeof PortalRoute
+  '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
+  fullPaths:
+    | '/'
+    | '/agendamentos'
+    | '/analytics'
+    | '/comunicacao'
+    | '/ditado'
+    | '/escala'
+    | '/mobile'
+    | '/parcerias'
+    | '/portal'
+    | '/telemedicina'
+    | '/triagem'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
-  id: '__root__' | '/' | '/agendamentos' | '/mobile' | '/parcerias' | '/triagem'
+  to:
+    | '/'
+    | '/agendamentos'
+    | '/analytics'
+    | '/comunicacao'
+    | '/ditado'
+    | '/escala'
+    | '/mobile'
+    | '/parcerias'
+    | '/portal'
+    | '/telemedicina'
+    | '/triagem'
+  id:
+    | '__root__'
+    | '/'
+    | '/agendamentos'
+    | '/analytics'
+    | '/comunicacao'
+    | '/ditado'
+    | '/escala'
+    | '/mobile'
+    | '/parcerias'
+    | '/portal'
+    | '/telemedicina'
+    | '/triagem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendamentosRoute: typeof AgendamentosRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  ComunicacaoRoute: typeof ComunicacaoRoute
+  DitadoRoute: typeof DitadoRoute
+  EscalaRoute: typeof EscalaRoute
   MobileRoute: typeof MobileRoute
   ParceriasRoute: typeof ParceriasRoute
+  PortalRoute: typeof PortalRoute
+  TelemedicinaRoute: typeof TelemedicinaRoute
   TriagemRoute: typeof TriagemRoute
 }
 
@@ -86,6 +180,20 @@ declare module '@tanstack/react-router' {
       path: '/triagem'
       fullPath: '/triagem'
       preLoaderRoute: typeof TriagemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/telemedicina': {
+      id: '/telemedicina'
+      path: '/telemedicina'
+      fullPath: '/telemedicina'
+      preLoaderRoute: typeof TelemedicinaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parcerias': {
@@ -100,6 +208,34 @@ declare module '@tanstack/react-router' {
       path: '/mobile'
       fullPath: '/mobile'
       preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escala': {
+      id: '/escala'
+      path: '/escala'
+      fullPath: '/escala'
+      preLoaderRoute: typeof EscalaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ditado': {
+      id: '/ditado'
+      path: '/ditado'
+      fullPath: '/ditado'
+      preLoaderRoute: typeof DitadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao': {
+      id: '/comunicacao'
+      path: '/comunicacao'
+      fullPath: '/comunicacao'
+      preLoaderRoute: typeof ComunicacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agendamentos': {
@@ -122,10 +258,25 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendamentosRoute: AgendamentosRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  ComunicacaoRoute: ComunicacaoRoute,
+  DitadoRoute: DitadoRoute,
+  EscalaRoute: EscalaRoute,
   MobileRoute: MobileRoute,
   ParceriasRoute: ParceriasRoute,
+  PortalRoute: PortalRoute,
+  TelemedicinaRoute: TelemedicinaRoute,
   TriagemRoute: TriagemRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -1,36 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, Users, TrendingUp, AlertCircle, Sparkles, Stethoscope } from "lucide-react";
+import { Activity, Calendar, Building2, Users, TrendingUp, AlertCircle, Sparkles, Stethoscope, Bed, Scissors } from "lucide-react";
 import clinicImg from "@/assets/urgimed-clinic.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Urgimed Health & Hospitality — Dashboard Mindelo" },
-      { name: "description", content: "Plataforma de triagem IA, parcerias clínicas e agendamento VIP para turistas em Mindelo, Cabo Verde." },
+      { title: "Urgimed Health & Hospitality — Dashboard" },
+      { name: "description", content: "Sistema de triagem e gestão para Clínica Urgimed e Urgimed Health Hospitality em Mindelo." },
     ],
   }),
   component: Index,
 });
 
 const stats = [
-  { label: "Triagens Hoje", value: "47", trend: "+12%", icon: Activity },
-  { label: "Pacientes VIP", value: "18", trend: "+5", icon: Sparkles },
-  { label: "Hotéis Parceiros", value: "23", trend: "+2", icon: Building2 },
-  { label: "Consultas Agendadas", value: "62", trend: "+8%", icon: Calendar },
+  { label: "Triagens (Urgência 24h)", value: "47", trend: "+12%", icon: Activity },
+  { label: "Ocupação (Suítes)", value: "12/14", trend: "85%", icon: Bed },
+  { label: "Cirurgias (Laparoscopia)", value: "8", trend: "+2", icon: Scissors },
+  { label: "Consultas Ambulatório", value: "145", trend: "+8%", icon: Calendar },
 ];
 
 const queue = [
-  { name: "Marie Dubois", hotel: "Foya Branca Resort", symptom: "Febre + dor abdominal", priority: "VIP", specialty: "Clínica Geral", time: "há 4 min" },
-  { name: "James Carter", hotel: "Oasis Atlântico", symptom: "Dor dental aguda", priority: "Urgência", specialty: "Odontologia", time: "há 9 min" },
-  { name: "Sofia Rossi", hotel: "Urgimed Hospitality Guest", symptom: "Reação alérgica leve", priority: "Normal", specialty: "Dermatologia", time: "há 17 min" },
+  { name: "Marie Dubois", hotel: "Foya Branca Resort", symptom: "Dor abdominal aguda", priority: "Emergência", specialty: "Cirurgia Geral", time: "há 4 min" },
+  { name: "James Carter", hotel: "Residente", symptom: "Check-up Cardíaco", priority: "Normal", specialty: "Cardiologia", time: "há 9 min" },
+  { name: "Sofia Rossi", hotel: "Oasis Atlântico", symptom: "Febre alta", priority: "Urgência", specialty: "Pediatria", time: "há 17 min" },
 ];
 
 const priorityStyle: Record<string, string> = {
-  VIP: "bg-primary text-primary-foreground",
-  "Urgência": "bg-warning/15 text-warning border border-warning/30",
+  Emergência: "bg-destructive text-destructive-foreground animate-pulse",
+  Urgência: "bg-warning/15 text-warning border border-warning/30",
   Normal: "bg-muted text-muted-foreground",
+  VIP: "bg-primary text-primary-foreground",
 };
 
 function Index() {
@@ -39,22 +40,22 @@ function Index() {
       <div className="space-y-6">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[340px] flex items-end" style={{ boxShadow: "var(--shadow-elegant)" }}>
-          <img src={clinicImg} alt="Clínica Urgimed Health & Hospitality, Mindelo" className="absolute inset-0 size-full object-cover" />
+          <img src={clinicImg} alt="Urgimed Health & Hospitality, Mindelo" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/85 via-primary/50 to-transparent" />
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium backdrop-blur">
-              <Stethoscope className="size-3.5" /> Health & Hospitality Mindelo
+              <Stethoscope className="size-3.5" /> Health & Hospitality
             </div>
-            <h2 className="mt-4 text-3xl lg:text-4xl font-bold tracking-tight">Triagem IA para Turistas</h2>
+            <h2 className="mt-4 text-3xl lg:text-4xl font-bold tracking-tight">Ecosistema Integrado de Saúde</h2>
             <p className="mt-2 text-primary-foreground/90 text-sm lg:text-base">
-              Recepção virtual operando 24/7. Hotéis enviam pacientes via QR code, a IA atribui especialidade e prioridade, e o sistema bloqueia agendamentos duplicados.
+              Gestão centralizada para a Clínica Sede (Ambulatório e Diagnóstico) e Urgimed Health Hospitality (Cirurgias, Internamento e Urgências 24h).
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/triagem" className="inline-flex items-center gap-2 rounded-lg bg-primary-foreground text-primary px-4 py-2.5 text-sm font-semibold hover:opacity-95">
-                <Activity className="size-4" /> Iniciar Triagem
+                <Activity className="size-4" /> Triagem Manchester
               </Link>
               <Link to="/agendamentos" className="inline-flex items-center gap-2 rounded-lg bg-primary-foreground/15 backdrop-blur text-primary-foreground px-4 py-2.5 text-sm font-semibold border border-primary-foreground/20 hover:bg-primary-foreground/20">
-                AGENDAR CONSULTA VIP DENTISTA
+                NOVO AGENDAMENTO
               </Link>
             </div>
           </div>
@@ -83,8 +84,8 @@ function Index() {
           <div className="lg:col-span-2 rounded-xl bg-card border" style={{ boxShadow: "var(--shadow-card)" }}>
             <div className="px-5 py-4 border-b flex items-center justify-between">
               <div>
-                <h3 className="font-semibold">Fila de Triagem em Tempo Real</h3>
-                <p className="text-xs text-muted-foreground">Pacientes recebidos via QR code dos hotéis parceiros</p>
+                <h3 className="font-semibold">Fila de Triagem (Urgência 24h)</h3>
+                <p className="text-xs text-muted-foreground">Pacientes encaminhados para a unidade Health Hospitality</p>
               </div>
               <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
                 <span className="size-2 rounded-full bg-success animate-pulse" /> ao vivo
@@ -99,9 +100,9 @@ function Index() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium truncate">{q.name}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${priorityStyle[q.priority]}`}>{q.priority}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${priorityStyle[q.priority] || priorityStyle['Normal']}`}>{q.priority}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">{q.hotel} · {q.symptom}</div>
+                    <div className="text-xs text-muted-foreground truncate">{q.hotel ? q.hotel + ' · ' : ''}{q.symptom}</div>
                   </div>
                   <div className="hidden sm:block text-right">
                     <div className="text-sm font-medium">{q.specialty}</div>
@@ -116,22 +117,36 @@ function Index() {
             <div className="rounded-xl bg-card border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-start gap-3">
                 <div className="size-10 rounded-lg bg-accent grid place-items-center">
-                  <AlertCircle className="size-5 text-primary" />
+                  <Building2 className="size-5 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm">Sistema de Bloqueio Ativo</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Trigger SQL impede que dois turistas reservem o mesmo horário. 0 conflitos hoje.</p>
+                  <h4 className="font-semibold text-sm">Status das Unidades</h4>
+                  <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
+                    <li className="flex justify-between">
+                      <span>Clínica Sede (08h-22h)</span>
+                      <span className="text-success font-medium">Aberto</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Health Hospitality (24h)</span>
+                      <span className="text-success font-medium">Operante</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Bloco Operatório</span>
+                      <span className="text-warning font-medium">1 Cirurgia em curso</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
+            
             <div className="rounded-xl border p-5 bg-gradient-to-br from-accent to-card" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary font-semibold">
-                <Users className="size-4" /> Parceria Destaque
+                <Users className="size-4" /> Parcerias e Seguros
               </div>
-              <h4 className="mt-2 font-semibold">Medicentro Clínico de Especialidades</h4>
-              <p className="text-xs text-muted-foreground">Rua Alberto Leite · 14 pacientes encaminhados esta semana</p>
+              <h4 className="mt-2 font-semibold">Validação Instantânea</h4>
+              <p className="text-xs text-muted-foreground mt-1">Garantia Seguros, IMPAR, BS Care e INPS com integração automática no agendamento.</p>
               <Link to="/parcerias" className="mt-3 inline-flex text-xs font-semibold text-primary hover:underline">
-                Ver relatórios de comissão →
+                Gerir protocolos →
               </Link>
             </div>
           </div>
@@ -140,3 +155,5 @@ function Index() {
     </DashboardLayout>
   );
 }
+
+export default Index;
