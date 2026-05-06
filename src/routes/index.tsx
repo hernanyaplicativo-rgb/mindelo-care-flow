@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, Users, TrendingUp, AlertCircle, Sparkles, Stethoscope, Bed, Scissors } from "lucide-react";
+import { Activity, Calendar, Building2, Users, TrendingUp, Bed, Scissors } from "lucide-react";
 import clinicImg from "@/assets/urgimed-clinic.jpg";
 
 export const Route = createFileRoute("/")({
