@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, QrCode, Stethoscope, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin } from "lucide-react";
+import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse } from "lucide-react";
 
 const items = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -20,13 +20,13 @@ export function Sidebar() {
     <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border relative">
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-[var(--primary-glow)] to-primary" />
       <div className="px-6 py-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-[var(--primary-glow)] flex items-center justify-center shadow-[0_8px_24px_-8px_var(--primary)]">
-            <Stethoscope className="size-5 text-primary-foreground" />
+        <div className="flex items-center gap-3">
+          <div className="size-11 rounded-xl bg-gradient-to-br from-primary to-[var(--primary-glow)] flex items-center justify-center shadow-[0_8px_24px_-8px_var(--primary)]">
+            <HeartPulse className="size-5 text-primary-foreground" />
           </div>
           <div>
-            <div className="font-bold tracking-tight text-base font-[var(--font-display)]">Urgimed</div>
-            <div className="text-[11px] uppercase tracking-widest text-sidebar-foreground/60">Health & Hospitality</div>
+            <div className="font-bold tracking-tight text-base font-[var(--font-display)]">Medicentro</div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/60">Clínica Privada · 20 anos</div>
           </div>
         </div>
       </div>
