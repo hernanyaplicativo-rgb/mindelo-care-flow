@@ -1,14 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse } from "lucide-react";
+import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart } from "lucide-react";
 
 const items = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/triagem", label: "Triagem IA", icon: Activity },
+  { to: "/marcacao-online", label: "Marcação Online", icon: Smartphone },
   { to: "/parcerias", label: "Parcerias", icon: Building2 },
   { to: "/agendamentos", label: "Agendamentos", icon: Calendar },
   { to: "/mobile", label: "Quiosque (Tablet)", icon: QrCode },
   { to: "/portal", label: "Portal do Paciente", icon: UserCircle },
   { to: "/telemedicina", label: "Telemedicina", icon: Video },
+  { to: "/prontuario", label: "Prontuário (EMR)", icon: FileHeart },
+  { to: "/faturacao", label: "Faturação & Caixa", icon: Receipt },
+  { to: "/farmacia", label: "Farmácia & Stock", icon: Pill },
   { to: "/comunicacao", label: "WhatsApp & SMS", icon: MessageCircle },
   { to: "/analytics", label: "Analytics & BI", icon: BarChart3 },
   { to: "/ditado", label: "Ditado IA (EMR)", icon: Mic },

@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TriagemRouteImport } from './routes/triagem'
 import { Route as TelemedicinaRouteImport } from './routes/telemedicina'
+import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
 import { Route as MobileRouteImport } from './routes/mobile'
+import { Route as MarcacaoOnlineRouteImport } from './routes/marcacao-online'
+import { Route as FaturacaoRouteImport } from './routes/faturacao'
+import { Route as FarmaciaRouteImport } from './routes/farmacia'
 import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as DitadoRouteImport } from './routes/ditado'
 import { Route as ComunicacaoRouteImport } from './routes/comunicacao'
@@ -31,6 +35,11 @@ const TelemedicinaRoute = TelemedicinaRouteImport.update({
   path: '/telemedicina',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProntuarioRoute = ProntuarioRouteImport.update({
+  id: '/prontuario',
+  path: '/prontuario',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -44,6 +53,21 @@ const ParceriasRoute = ParceriasRouteImport.update({
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarcacaoOnlineRoute = MarcacaoOnlineRouteImport.update({
+  id: '/marcacao-online',
+  path: '/marcacao-online',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaturacaoRoute = FaturacaoRouteImport.update({
+  id: '/faturacao',
+  path: '/faturacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FarmaciaRoute = FarmaciaRouteImport.update({
+  id: '/farmacia',
+  path: '/farmacia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EscalaRoute = EscalaRouteImport.update({
@@ -84,9 +108,13 @@ export interface FileRoutesByFullPath {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/prontuario': typeof ProntuarioRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -97,9 +125,13 @@ export interface FileRoutesByTo {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/prontuario': typeof ProntuarioRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -111,9 +143,13 @@ export interface FileRoutesById {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/prontuario': typeof ProntuarioRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -126,9 +162,13 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/prontuario'
     | '/telemedicina'
     | '/triagem'
   fileRoutesByTo: FileRoutesByTo
@@ -139,9 +179,13 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/prontuario'
     | '/telemedicina'
     | '/triagem'
   id:
@@ -152,9 +196,13 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/prontuario'
     | '/telemedicina'
     | '/triagem'
   fileRoutesById: FileRoutesById
@@ -166,9 +214,13 @@ export interface RootRouteChildren {
   ComunicacaoRoute: typeof ComunicacaoRoute
   DitadoRoute: typeof DitadoRoute
   EscalaRoute: typeof EscalaRoute
+  FarmaciaRoute: typeof FarmaciaRoute
+  FaturacaoRoute: typeof FaturacaoRoute
+  MarcacaoOnlineRoute: typeof MarcacaoOnlineRoute
   MobileRoute: typeof MobileRoute
   ParceriasRoute: typeof ParceriasRoute
   PortalRoute: typeof PortalRoute
+  ProntuarioRoute: typeof ProntuarioRoute
   TelemedicinaRoute: typeof TelemedicinaRoute
   TriagemRoute: typeof TriagemRoute
 }
@@ -187,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/telemedicina'
       fullPath: '/telemedicina'
       preLoaderRoute: typeof TelemedicinaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prontuario': {
+      id: '/prontuario'
+      path: '/prontuario'
+      fullPath: '/prontuario'
+      preLoaderRoute: typeof ProntuarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal': {
@@ -208,6 +267,27 @@ declare module '@tanstack/react-router' {
       path: '/mobile'
       fullPath: '/mobile'
       preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marcacao-online': {
+      id: '/marcacao-online'
+      path: '/marcacao-online'
+      fullPath: '/marcacao-online'
+      preLoaderRoute: typeof MarcacaoOnlineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faturacao': {
+      id: '/faturacao'
+      path: '/faturacao'
+      fullPath: '/faturacao'
+      preLoaderRoute: typeof FaturacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/farmacia': {
+      id: '/farmacia'
+      path: '/farmacia'
+      fullPath: '/farmacia'
+      preLoaderRoute: typeof FarmaciaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/escala': {
@@ -262,9 +342,13 @@ const rootRouteChildren: RootRouteChildren = {
   ComunicacaoRoute: ComunicacaoRoute,
   DitadoRoute: DitadoRoute,
   EscalaRoute: EscalaRoute,
+  FarmaciaRoute: FarmaciaRoute,
+  FaturacaoRoute: FaturacaoRoute,
+  MarcacaoOnlineRoute: MarcacaoOnlineRoute,
   MobileRoute: MobileRoute,
   ParceriasRoute: ParceriasRoute,
   PortalRoute: PortalRoute,
+  ProntuarioRoute: ProntuarioRoute,
   TelemedicinaRoute: TelemedicinaRoute,
   TriagemRoute: TriagemRoute,
 }
