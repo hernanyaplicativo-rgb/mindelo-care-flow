@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Link } from "@tanstack/react-router";
 import { Activity, Calendar, Building2, Users, TrendingUp, Bed, Scissors } from "lucide-react";
-import clinicImg from "@/assets/urgimed-clinic.jpg";
+import clinicImg from "@/assets/medicentro-clinic.jpg";
+import logoImg from "@/assets/medicentro-logo.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Urgimed Health & Hospitality — Dashboard" },
-      { name: "description", content: "Sistema de triagem e gestão para Clínica Urgimed e Urgimed Health Hospitality em Mindelo." },
+      { title: "Medicentro Health Hub — Dashboard" },
+      { name: "description", content: "Sistema de triagem e gestão para a Clínica Privada Medicentro — Mindelo, Cabo Verde." },
     ],
   }),
   component: Index,
@@ -22,9 +23,9 @@ const stats = [
 ];
 
 const queue = [
-  { name: "Marie Dubois", hotel: "Foya Branca Resort", symptom: "Dor abdominal aguda", priority: "Emergência", specialty: "Cirurgia Geral", time: "há 4 min" },
-  { name: "James Carter", hotel: "Residente", symptom: "Check-up Cardíaco", priority: "Normal", specialty: "Cardiologia", time: "há 9 min" },
-  { name: "Sofia Rossi", hotel: "Oasis Atlântico", symptom: "Febre alta", priority: "Urgência", specialty: "Pediatria", time: "há 17 min" },
+  { name: "Maria Évora", hotel: "INPS · Madeiralzinho", symptom: "Dor abdominal aguda", priority: "Emergência", specialty: "Cirurgia Geral", time: "há 4 min" },
+  { name: "João Silva", hotel: "Garantia · Particular", symptom: "Check-up Cardíaco", priority: "Normal", specialty: "Cardiologia", time: "há 9 min" },
+  { name: "Ana Tavares", hotel: "IMPAR · Monte Sossego", symptom: "Febre alta pediátrica", priority: "Urgência", specialty: "Pediatria", time: "há 17 min" },
 ];
 
 const priorityStyle: Record<string, string> = {
@@ -36,20 +37,21 @@ const priorityStyle: Record<string, string> = {
 
 function Index() {
   return (
-    <DashboardLayout title="Recepção Urgimed" subtitle="Mindelo · São Vicente · Cabo Verde">
+    <DashboardLayout title="Recepção Medicentro" subtitle="Mindelo · São Vicente · Cabo Verde">
       <div className="space-y-6">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[340px] flex items-end ring-1 ring-border/50" style={{ boxShadow: "var(--shadow-elegant)" }}>
-          <img src={clinicImg} alt="Urgimed Health & Hospitality, Mindelo" className="absolute inset-0 size-full object-cover scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[oklch(0.2_0.02_20/0.85)] via-primary/55 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,transparent_0%,oklch(0.2_0.02_20/0.4)_100%)]" />
+          <img src={clinicImg} alt="Clínica Privada Medicentro, Mindelo" className="absolute inset-0 size-full object-cover scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[oklch(0.22_0.02_240/0.88)] via-primary/55 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,transparent_0%,oklch(0.22_0.02_240/0.4)_100%)]" />
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1 text-[11px] font-medium backdrop-blur-md border border-primary-foreground/20">
-              <span className="size-1.5 rounded-full bg-success animate-pulse" /> Sistema operacional · Health & Hospitality
+              <img src={logoImg} alt="Medicentro 20 anos" className="size-4 rounded-full object-cover" />
+              <span>Medicentro · 20 anos a cuidar de si</span>
             </div>
-            <h2 className="mt-4 text-3xl lg:text-5xl font-bold tracking-tight leading-[1.05]">Ecosistema integrado<br/><span className="bg-gradient-to-r from-primary-foreground to-primary-foreground/60 bg-clip-text text-transparent">de saúde &amp; hospitalidade</span></h2>
+            <h2 className="mt-4 text-3xl lg:text-5xl font-bold tracking-tight leading-[1.05]">Clínica Privada<br/><span className="bg-gradient-to-r from-primary-foreground to-primary-foreground/60 bg-clip-text text-transparent">Medicentro Mindelo</span></h2>
             <p className="mt-3 text-primary-foreground/85 text-sm lg:text-base max-w-xl">
-              Gestão centralizada para a Clínica Sede (Ambulatório e Diagnóstico) e Urgimed Health Hospitality (Cirurgias, Internamento e Urgências 24h).
+              Gestão centralizada da Clínica Sede (Madeiralzinho) e da Unidade Monte Sossego — ambulatório, diagnóstico, cirurgia e urgência.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/triagem" className="inline-flex items-center gap-2 rounded-lg bg-primary-foreground text-primary px-4 py-2.5 text-sm font-semibold hover:translate-y-[-1px] hover:shadow-lg transition-all">
@@ -122,15 +124,15 @@ function Index() {
                 <div className="size-10 rounded-lg bg-accent grid place-items-center">
                   <Building2 className="size-5 text-primary" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h4 className="font-semibold text-sm">Status das Unidades</h4>
                   <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
                     <li className="flex justify-between">
-                      <span>Clínica Sede (08h-22h)</span>
+                      <span>Clínica Sede · Madeiralzinho</span>
                       <span className="text-success font-medium">Aberto</span>
                     </li>
                     <li className="flex justify-between">
-                      <span>Health Hospitality (24h)</span>
+                      <span>Unidade Monte Sossego</span>
                       <span className="text-success font-medium">Operante</span>
                     </li>
                     <li className="flex justify-between">

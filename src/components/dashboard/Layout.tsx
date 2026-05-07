@@ -34,7 +34,7 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
               </div>
               <div className="hidden lg:block leading-tight">
                 <div className="text-xs font-semibold">Dr. Hernâni</div>
-                <div className="text-[10px] text-muted-foreground">Administrador</div>
+                <div className="text-[10px] text-muted-foreground">Administrador · Medicentro</div>
               </div>
             </div>
           </div>
