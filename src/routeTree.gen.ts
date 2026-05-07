@@ -14,6 +14,8 @@ import { Route as TelemedicinaRouteImport } from './routes/telemedicina'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
 import { Route as MobileRouteImport } from './routes/mobile'
+import { Route as MarcacaoOnlineRouteImport } from './routes/marcacao-online'
+import { Route as FaturacaoRouteImport } from './routes/faturacao'
 import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as DitadoRouteImport } from './routes/ditado'
 import { Route as ComunicacaoRouteImport } from './routes/comunicacao'
@@ -44,6 +46,16 @@ const ParceriasRoute = ParceriasRouteImport.update({
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarcacaoOnlineRoute = MarcacaoOnlineRouteImport.update({
+  id: '/marcacao-online',
+  path: '/marcacao-online',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaturacaoRoute = FaturacaoRouteImport.update({
+  id: '/faturacao',
+  path: '/faturacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EscalaRoute = EscalaRouteImport.update({
@@ -84,6 +96,8 @@ export interface FileRoutesByFullPath {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
@@ -97,6 +111,8 @@ export interface FileRoutesByTo {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
@@ -111,6 +127,8 @@ export interface FileRoutesById {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/faturacao': typeof FaturacaoRoute
+  '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
@@ -126,6 +144,8 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
@@ -139,6 +159,8 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
@@ -152,6 +174,8 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/faturacao'
+    | '/marcacao-online'
     | '/mobile'
     | '/parcerias'
     | '/portal'
@@ -166,6 +190,8 @@ export interface RootRouteChildren {
   ComunicacaoRoute: typeof ComunicacaoRoute
   DitadoRoute: typeof DitadoRoute
   EscalaRoute: typeof EscalaRoute
+  FaturacaoRoute: typeof FaturacaoRoute
+  MarcacaoOnlineRoute: typeof MarcacaoOnlineRoute
   MobileRoute: typeof MobileRoute
   ParceriasRoute: typeof ParceriasRoute
   PortalRoute: typeof PortalRoute
@@ -208,6 +234,20 @@ declare module '@tanstack/react-router' {
       path: '/mobile'
       fullPath: '/mobile'
       preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marcacao-online': {
+      id: '/marcacao-online'
+      path: '/marcacao-online'
+      fullPath: '/marcacao-online'
+      preLoaderRoute: typeof MarcacaoOnlineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faturacao': {
+      id: '/faturacao'
+      path: '/faturacao'
+      fullPath: '/faturacao'
+      preLoaderRoute: typeof FaturacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/escala': {
@@ -262,6 +302,8 @@ const rootRouteChildren: RootRouteChildren = {
   ComunicacaoRoute: ComunicacaoRoute,
   DitadoRoute: DitadoRoute,
   EscalaRoute: EscalaRoute,
+  FaturacaoRoute: FaturacaoRoute,
+  MarcacaoOnlineRoute: MarcacaoOnlineRoute,
   MobileRoute: MobileRoute,
   ParceriasRoute: ParceriasRoute,
   PortalRoute: PortalRoute,
@@ -271,3 +313,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
