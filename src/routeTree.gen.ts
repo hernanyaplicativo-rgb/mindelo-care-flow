@@ -16,6 +16,7 @@ import { Route as ParceriasRouteImport } from './routes/parcerias'
 import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as MarcacaoOnlineRouteImport } from './routes/marcacao-online'
 import { Route as FaturacaoRouteImport } from './routes/faturacao'
+import { Route as FarmaciaRouteImport } from './routes/farmacia'
 import { Route as EscalaRouteImport } from './routes/escala'
 import { Route as DitadoRouteImport } from './routes/ditado'
 import { Route as ComunicacaoRouteImport } from './routes/comunicacao'
@@ -58,6 +59,11 @@ const FaturacaoRoute = FaturacaoRouteImport.update({
   path: '/faturacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FarmaciaRoute = FarmaciaRouteImport.update({
+  id: '/farmacia',
+  path: '/farmacia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EscalaRoute = EscalaRouteImport.update({
   id: '/escala',
   path: '/escala',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
   '/escala': typeof EscalaRoute
+  '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/comunicacao'
     | '/ditado'
     | '/escala'
+    | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   ComunicacaoRoute: typeof ComunicacaoRoute
   DitadoRoute: typeof DitadoRoute
   EscalaRoute: typeof EscalaRoute
+  FarmaciaRoute: typeof FarmaciaRoute
   FaturacaoRoute: typeof FaturacaoRoute
   MarcacaoOnlineRoute: typeof MarcacaoOnlineRoute
   MobileRoute: typeof MobileRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaturacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/farmacia': {
+      id: '/farmacia'
+      path: '/farmacia'
+      fullPath: '/farmacia'
+      preLoaderRoute: typeof FarmaciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/escala': {
       id: '/escala'
       path: '/escala'
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComunicacaoRoute: ComunicacaoRoute,
   DitadoRoute: DitadoRoute,
   EscalaRoute: EscalaRoute,
+  FarmaciaRoute: FarmaciaRoute,
   FaturacaoRoute: FaturacaoRoute,
   MarcacaoOnlineRoute: MarcacaoOnlineRoute,
   MobileRoute: MobileRoute,
