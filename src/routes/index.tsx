@@ -23,9 +23,9 @@ const stats = [
 ];
 
 const queue = [
-  { name: "Marie Dubois", hotel: "Foya Branca Resort", symptom: "Dor abdominal aguda", priority: "Emergência", specialty: "Cirurgia Geral", time: "há 4 min" },
-  { name: "James Carter", hotel: "Residente", symptom: "Check-up Cardíaco", priority: "Normal", specialty: "Cardiologia", time: "há 9 min" },
-  { name: "Sofia Rossi", hotel: "Oasis Atlântico", symptom: "Febre alta", priority: "Urgência", specialty: "Pediatria", time: "há 17 min" },
+  { name: "Maria Évora", hotel: "INPS · Madeiralzinho", symptom: "Dor abdominal aguda", priority: "Emergência", specialty: "Cirurgia Geral", time: "há 4 min" },
+  { name: "João Silva", hotel: "Garantia · Particular", symptom: "Check-up Cardíaco", priority: "Normal", specialty: "Cardiologia", time: "há 9 min" },
+  { name: "Ana Tavares", hotel: "IMPAR · Monte Sossego", symptom: "Febre alta pediátrica", priority: "Urgência", specialty: "Pediatria", time: "há 17 min" },
 ];
 
 const priorityStyle: Record<string, string> = {
