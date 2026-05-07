@@ -73,6 +73,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { RoleProvider } from "../hooks/useRole";
+
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <RoleProvider>
+      <Outlet />
+    </RoleProvider>
+  );
 }

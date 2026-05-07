@@ -33,10 +33,95 @@ const statusStyle: Record<string, string> = {
   INPS: "bg-primary/10 text-primary",
 };
 
+import { useRole } from "@/hooks/useRole";
+import { useState } from "react";
+import { Settings2, Plus, Save, X } from "lucide-react";
+
 function FaturacaoPage() {
+  const { currentRole } = useRole();
+  const [isEditingPrices, setIsEditingPrices] = useState(false);
+  const [prices, setPrices] = useState([
+    { id: 1, service: "Consulta Geral", price: "3.500", category: "Atendimento" },
+    { id: 2, service: "Ecocardiograma", price: "8.500", category: "Exames" },
+    { id: 3, service: "Análises Sangue (Base)", price: "2.800", category: "Laboratório" },
+    { id: 4, service: "Urgência (Manchester)", price: "5.000", category: "Urgência" },
+  ]);
+
   return (
     <DashboardLayout title="Faturação & Caixa" subtitle="Recibos, convénios e fecho diário">
-      <div className="space-y-6 max-w-7xl">
+      <div className="space-y-6 max-w-7xl pb-10">
+        
+        {/* Manager Tools */}
+        {currentRole === 'admin' && (
+          <section className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                <Settings2 className="size-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold">Painel de Gestão (Gerente)</h4>
+                <p className="text-xs text-muted-foreground">Você tem permissão para alterar preços e serviços.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsEditingPrices(!isEditingPrices)}
+              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+            >
+              {isEditingPrices ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
+              {isEditingPrices ? "Fechar Gestão" : "Editar Tabela de Preços"}
+            </button>
+          </section>
+        )}
+
+        {/* Price Editing Modal/View */}
+        {isEditingPrices && currentRole === 'admin' && (
+          <section className="rounded-xl border bg-card p-6 shadow-xl animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-lg">Tabela de Preços de Serviços</h3>
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Save className="size-3" /> Alterações são aplicadas em tempo real
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {prices.map((p, idx) => (
+                <div key={p.id} className="p-4 rounded-xl border bg-muted/30 flex items-center gap-4 group">
+                  <div className="flex-1">
+                    <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">Serviço</label>
+                    <input 
+                      value={p.service} 
+                      onChange={(e) => {
+                        const newPrices = [...prices];
+                        newPrices[idx].service = e.target.value;
+                        setPrices(newPrices);
+                      }}
+                      className="w-full bg-background border rounded-md px-3 py-1.5 text-sm font-semibold focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="w-32">
+                    <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">Preço (CVE)</label>
+                    <input 
+                      type="text"
+                      value={p.price} 
+                      onChange={(e) => {
+                        const newPrices = [...prices];
+                        newPrices[idx].price = e.target.value;
+                        setPrices(newPrices);
+                      }}
+                      className="w-full bg-background border rounded-md px-3 py-1.5 text-sm font-bold text-primary focus:ring-1 focus:ring-primary text-right"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 flex justify-end gap-3">
+              <button className="text-xs font-semibold px-4 py-2 rounded-lg border hover:bg-muted transition-colors">Adicionar Novo Serviço</button>
+              <button onClick={() => setIsEditingPrices(false)} className="text-xs font-bold px-6 py-2 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">Guardar Alterações</button>
+            </div>
+          </section>
+        )}
+
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map(({ label, value, trend, icon: Icon }) => (
             <div key={label} className="rounded-xl bg-card border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
