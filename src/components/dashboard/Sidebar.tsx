@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User } from "lucide-react";
 import { useState } from "react";
+import { useRole, Unit } from "@/hooks/useRole";
 
 type Role = 'admin' | 'doctor' | 'reception' | 'patient';
 
@@ -36,10 +37,8 @@ const allItems = [
   { to: "/marcacao-online", label: "Marcação Online", icon: Smartphone, roles: ['patient'] },
 ];
 
-import { useRole } from "@/hooks/useRole";
-
 export function Sidebar() {
-  const { currentRole, setRole: setCurrentRole } = useRole();
+  const { currentRole, setRole: setCurrentRole, currentUnit, setUnit } = useRole();
   
   const filteredItems = allItems.filter(item => item.roles.includes(currentRole));
 
@@ -58,28 +57,42 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Role Selector Simulator */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40 font-semibold mb-2 px-2">Simular Perfil</div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {roles.map((role) => (
-            <button
-              key={role.id}
-              onClick={() => setCurrentRole(role.id as Role)}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                currentRole === role.id 
-                  ? "bg-primary/10 text-primary border border-primary/20" 
-                  : "bg-sidebar-accent/50 text-sidebar-foreground/60 border border-transparent hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              }`}
-            >
-              <role.icon className="size-3" />
-              <span className="truncate">{role.label.split(' ')[0]}</span>
-            </button>
-          ))}
+      {/* Role & Unit Selectors */}
+      <div className="px-4 pt-4 pb-2 space-y-4 border-b border-sidebar-border">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40 font-semibold mb-2 px-2">Unidade</div>
+          <select 
+            value={currentUnit} 
+            onChange={(e) => setUnit(e.target.value as Unit)}
+            className="w-full bg-sidebar-accent/50 text-xs font-semibold text-sidebar-foreground border border-sidebar-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
+          >
+            <option value="Clínica Sede (Madeiralzinho)">Sede (Madeiralzinho)</option>
+            <option value="Unidade Monte Sossego">Monte Sossego</option>
+          </select>
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40 font-semibold mb-2 px-2">Simular Perfil</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {roles.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => setCurrentRole(role.id as Role)}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  currentRole === role.id 
+                    ? "bg-primary/10 text-primary border border-primary/20" 
+                    : "bg-sidebar-accent/50 text-sidebar-foreground/60 border border-transparent hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                }`}
+              >
+                <role.icon className="size-3" />
+                <span className="truncate">{role.label.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="px-6 pt-4 pb-2 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40 font-semibold border-t border-sidebar-border mt-2">
+      <div className="px-6 pt-4 pb-2 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40 font-semibold">
         Navegação ({roles.find(r => r.id === currentRole)?.label})
       </div>
       
@@ -102,7 +115,7 @@ export function Sidebar() {
         <div className="absolute -right-4 -top-4 size-16 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-colors" />
         <div className="flex items-center gap-2 relative z-10">
           <MapPin className="size-3.5 text-primary" />
-          <span className="font-semibold text-sidebar-foreground">Mindelo · Cabo Verde</span>
+          <span className="font-semibold text-sidebar-foreground truncate" title={currentUnit}>{currentUnit.includes('Madeiralzinho') ? 'Mindelo · Sede' : 'Mindelo · M. Sossego'}</span>
         </div>
         <div className="mt-3 flex items-center gap-2 relative z-10">
           <span className="size-2 rounded-full bg-success animate-pulse shadow-[0_0_8px] shadow-success" />
