@@ -19,12 +19,12 @@ const kpis = [
   { label: "Receita mês", value: "5.8M CVE", trend: "+18%", icon: TrendingUp },
 ];
 
-const invoices = [
-  { n: "FT 2026/0412", patient: "Maria Évora", value: "3.500 CVE", status: "Pago", method: "Vinti4" },
-  { n: "FT 2026/0411", patient: "João Silva", value: "12.800 CVE", status: "INPS", method: "Convénio" },
-  { n: "FT 2026/0410", patient: "Ana Tavares", value: "5.200 CVE", status: "Pago", method: "Numerário" },
-  { n: "FT 2026/0409", patient: "Pedro Lima", value: "28.000 CVE", status: "Pendente", method: "Garantia" },
-  { n: "FT 2026/0408", patient: "Sofia Brito", value: "1.800 CVE", status: "Pago", method: "MobiCash" },
+const initialInvoices = [
+  { n: "FT 2026/0412", patient: "Maria Évora", value: 3500, status: "Pago", method: "Vinti4" },
+  { n: "FT 2026/0411", patient: "João Silva", value: 12800, status: "INPS", method: "Convénio" },
+  { n: "FT 2026/0410", patient: "Ana Tavares", value: 5200, status: "Pago", method: "Numerário" },
+  { n: "FT 2026/0409", patient: "Pedro Lima", value: 28000, status: "Pendente", method: "Garantia" },
+  { n: "FT 2026/0408", patient: "Sofia Brito", value: 1800, status: "Pago", method: "MobiCash" },
 ];
 
 const statusStyle: Record<string, string> = {
@@ -34,18 +34,46 @@ const statusStyle: Record<string, string> = {
 };
 
 import { useRole } from "@/hooks/useRole";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings2, Plus, Save, X } from "lucide-react";
 
 function FaturacaoPage() {
   const { currentRole } = useRole();
   const [isEditingPrices, setIsEditingPrices] = useState(false);
+  const [q, setQ] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState<any>(null);
+  
+  const [invoicesData, setInvoicesData] = useState(() => {
+    const saved = localStorage.getItem('invoicesData');
+    return saved ? JSON.parse(saved) : initialInvoices;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('invoicesData', JSON.stringify(invoicesData));
+  }, [invoicesData]);
+
+  const [newInvoice, setNewInvoice] = useState({ patient: "", value: 0, method: "Numerário", status: "Pago" });
+
   const [prices, setPrices] = useState([
     { id: 1, service: "Consulta Geral", price: "3.500", category: "Atendimento" },
     { id: 2, service: "Ecocardiograma", price: "8.500", category: "Exames" },
     { id: 3, service: "Análises Sangue (Base)", price: "2.800", category: "Laboratório" },
     { id: 4, service: "Urgência (Manchester)", price: "5.000", category: "Urgência" },
   ]);
+
+  const filteredInvoices = invoicesData.filter(i => i.patient.toLowerCase().includes(q.toLowerCase()) || i.n.toLowerCase().includes(q.toLowerCase()));
+  
+  // Calculate Caixa Hoje (Only "Pago")
+  const caixaHoje = invoicesData.filter(i => i.status === "Pago").reduce((acc, i) => acc + i.value, 0);
+
+  const handleAddInvoice = () => {
+    if (!newInvoice.patient) return;
+    const n = `FT 2026/${(413 + (invoicesData.length - 5)).toString().padStart(4, '0')}`;
+    setInvoicesData([{ ...newInvoice, n }, ...invoicesData]);
+    setNewInvoice({ patient: "", value: 0, method: "Numerário", status: "Pago" });
+    setIsAddModalOpen(false);
+  };
 
   return (
     <DashboardLayout title="Faturação & Caixa" subtitle="Recibos, convénios e fecho diário">
@@ -123,7 +151,17 @@ function FaturacaoPage() {
         )}
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map(({ label, value, trend, icon: Icon }) => (
+          <div className="rounded-xl bg-card border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Caixa Hoje</span>
+              <div className="size-8 rounded-lg bg-primary/10 grid place-items-center text-primary"><Wallet className="size-4" /></div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight tabular-nums">{caixaHoje.toLocaleString('pt-PT')} CVE</span>
+              <span className="text-[11px] text-success font-semibold">+12%</span>
+            </div>
+          </div>
+          {kpis.slice(1).map(({ label, value, trend, icon: Icon }) => (
             <div key={label} className="rounded-xl bg-card border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
@@ -138,14 +176,22 @@ function FaturacaoPage() {
         </section>
 
         <section className="rounded-xl border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="px-5 py-4 border-b flex items-center justify-between">
+          <div className="px-5 py-4 border-b flex items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold">Faturas recentes</h3>
               <p className="text-xs text-muted-foreground">Hoje · Clínica Sede</p>
             </div>
-            <button className="inline-flex items-center gap-2 text-xs font-semibold border rounded-lg px-3 py-1.5 hover:bg-muted">
-              <Download className="size-3.5" /> Exportar SAFT
-            </button>
+            <div className="flex items-center gap-2">
+              <input 
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Pesquisar paciente..." 
+                className="bg-background border rounded-lg px-3 py-1.5 text-xs w-48 focus:ring-1 focus:ring-primary"
+              />
+              <button onClick={() => setIsAddModalOpen(true)} className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-white border-primary rounded-lg px-3 py-1.5 hover:opacity-90 shadow-sm shadow-primary/20">
+                <Plus className="size-3.5" /> Faturar
+              </button>
+            </div>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -158,21 +204,79 @@ function FaturacaoPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {invoices.map((i) => (
-                <tr key={i.n} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-mono text-xs">{i.n}</td>
-                  <td className="px-5 py-3">{i.patient}</td>
+              {filteredInvoices.map((i) => (
+                <tr key={i.n} className="hover:bg-muted/30 cursor-pointer group" onClick={() => setDetailsModalOpen(i)}>
+                  <td className="px-5 py-3 font-mono text-xs text-primary group-hover:underline">{i.n}</td>
+                  <td className="px-5 py-3 font-medium">{i.patient}</td>
                   <td className="px-5 py-3 text-muted-foreground text-xs">{i.method}</td>
-                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{i.value}</td>
+                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{i.value.toLocaleString('pt-PT')} CVE</td>
                   <td className="px-5 py-3 text-right">
                     <span className={`inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[i.status]}`}>{i.status}</span>
                   </td>
                 </tr>
               ))}
+              {filteredInvoices.length === 0 && (
+                <tr><td colSpan={5} className="text-center py-6 text-muted-foreground text-sm">Nenhuma fatura encontrada.</td></tr>
+              )}
             </tbody>
           </table>
         </section>
       </div>
+
+      {/* Add Invoice Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="font-bold text-lg mb-4">Criar Nova Fatura</h3>
+            <div className="space-y-4">
+              <input placeholder="Nome do Paciente" value={newInvoice.patient} onChange={e => setNewInvoice({...newInvoice, patient: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input type="number" placeholder="Valor (CVE)" value={newInvoice.value || ''} onChange={e => setNewInvoice({...newInvoice, value: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <select value={newInvoice.method} onChange={e => setNewInvoice({...newInvoice, method: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                <option value="Numerário">Numerário</option>
+                <option value="Vinti4">Vinti4</option>
+                <option value="Convénio">Convénio</option>
+                <option value="MobiCash">MobiCash</option>
+              </select>
+              <select value={newInvoice.status} onChange={e => setNewInvoice({...newInvoice, status: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                <option value="Pago">Pago</option>
+                <option value="Pendente">Pendente</option>
+                <option value="INPS">INPS</option>
+              </select>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-semibold hover:bg-muted transition-colors">Cancelar</button>
+              <button onClick={handleAddInvoice} className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">Emitir Fatura</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {detailsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200 relative">
+            <button onClick={() => setDetailsModalOpen(null)} className="absolute top-4 right-4 text-muted-foreground hover:bg-muted p-1 rounded-lg transition-colors">
+              <X className="size-4" />
+            </button>
+            <div className="text-center mb-6">
+              <div className="size-12 rounded-full bg-primary/10 text-primary grid place-items-center mx-auto mb-3"><Receipt className="size-6" /></div>
+              <h3 className="font-bold text-xl">{detailsModalOpen.n}</h3>
+              <p className="text-sm text-muted-foreground">Medicentro Mindelo</p>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Paciente</span> <span className="font-semibold">{detailsModalOpen.patient}</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Método</span> <span>{detailsModalOpen.method}</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Estado</span> <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[detailsModalOpen.status]}`}>{detailsModalOpen.status}</span></div>
+              <div className="flex justify-between py-3 text-lg"><span className="font-bold text-muted-foreground">Total</span> <span className="font-bold">{detailsModalOpen.value.toLocaleString('pt-PT')} CVE</span></div>
+            </div>
+            <div className="mt-6">
+              <button onClick={() => setDetailsModalOpen(null)} className="w-full py-2.5 rounded-xl border bg-background text-sm font-bold shadow-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
+                <Download className="size-4" /> Exportar PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

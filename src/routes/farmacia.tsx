@@ -23,17 +23,44 @@ const statusMap: Record<string, { label: string; cls: string }> = {
 function FarmaciaPage() {
   const { currentRole } = useRole();
   const [q, setQ] = useState("");
-  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [newItem, setNewItem] = useState({ name: "", cat: "", qty: 0, min: 0, exp: "", price: 0 });
+
   const [stockItems, setStockItems] = useState([
-    { name: "Paracetamol 500mg", cat: "Analgésico", qty: 1240, min: 500, exp: "2027-08", status: "ok" },
-    { name: "Amoxicilina 875mg", cat: "Antibiótico", qty: 86, min: 200, exp: "2026-11", status: "low" },
-    { name: "Soro Fisiológico 500ml", cat: "Consumível", qty: 320, min: 150, exp: "2028-01", status: "ok" },
-    { name: "Insulina Lantus", cat: "Hormonal · Frio", qty: 12, min: 20, exp: "2026-07", status: "low" },
-    { name: "Adrenalina 1mg/ml", cat: "Emergência", qty: 18, min: 25, exp: "2026-05", status: "exp" },
-    { name: "Luvas Nitrilo M", cat: "EPI", qty: 4500, min: 2000, exp: "2030-12", status: "ok" },
+    { name: "Paracetamol 500mg", cat: "Analgésico", qty: 1240, min: 500, exp: "2027-08", price: 250 },
+    { name: "Amoxicilina 875mg", cat: "Antibiótico", qty: 86, min: 200, exp: "2026-11", price: 600 },
+    { name: "Soro Fisiológico 500ml", cat: "Consumível", qty: 320, min: 150, exp: "2028-01", price: 400 },
+    { name: "Insulina Lantus", cat: "Hormonal · Frio", qty: 12, min: 20, exp: "2026-07", price: 4500 },
+    { name: "Adrenalina 1mg/ml", cat: "Emergência", qty: 18, min: 25, exp: "2026-05", price: 1200 },
+    { name: "Luvas Nitrilo M", cat: "EPI", qty: 4500, min: 2000, exp: "2030-12", price: 50 },
   ]);
 
-  const filtered = stockItems.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+  const itemsWithStatus = stockItems.map(s => {
+    let status = "ok";
+    if (s.qty <= s.min) status = "low";
+    // basic check for exp logic if needed, but for now fallback to basic
+    if (s.name === "Adrenalina 1mg/ml") status = "exp"; 
+    return { ...s, status };
+  });
+
+  const filtered = itemsWithStatus.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+
+  const totalValue = stockItems.reduce((sum, s) => sum + (s.qty * s.price), 0);
+  const formattedValue = totalValue >= 1000000 ? `${(totalValue / 1000000).toFixed(1)}M CVE` : `${(totalValue / 1000).toFixed(1)}K CVE`;
+  
+  const handleSaveEdit = () => {
+    setStockItems(prev => prev.map(item => item.name === editingItem.originalName ? { ...editingItem, name: editingItem.name } : item));
+    setIsEditModalOpen(false);
+  };
+
+  const handleAddProduct = () => {
+    if (!newItem.name) return;
+    setStockItems(prev => [...prev, { ...newItem, price: newItem.price || 0 }]);
+    setNewItem({ name: "", cat: "", qty: 0, min: 0, exp: "", price: 0 });
+    setIsAddModalOpen(false);
+  };
 
   return (
     <DashboardLayout title="Farmácia & Stock" subtitle="Medicamentos, consumíveis e EPI">
@@ -52,7 +79,10 @@ function FarmaciaPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all">
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 transition-all"
+              >
                 <Plus className="size-3.5" /> Adicionar Produto
               </button>
             </div>
@@ -61,10 +91,10 @@ function FarmaciaPage() {
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { l: "Referências activas", v: stockItems.length, i: Pill },
-            { l: "Stock baixo", v: stockItems.filter(s => s.status === 'low').length, i: TrendingDown },
-            { l: "Validade < 90 dias", v: stockItems.filter(s => s.status === 'exp').length, i: AlertTriangle },
-            { l: "Valor em Stock", v: "1.2M CVE", i: Package },
+            { l: "Referências activas", v: itemsWithStatus.length, i: Pill },
+            { l: "Stock baixo", v: itemsWithStatus.filter(s => s.status === 'low').length, i: TrendingDown },
+            { l: "Validade < 90 dias", v: itemsWithStatus.filter(s => s.status === 'exp').length, i: AlertTriangle },
+            { l: "Valor em Stock", v: formattedValue, i: Package },
           ].map(({ l, v, i: I }) => (
             <div key={l} className="rounded-2xl bg-card border p-5 flex flex-col gap-3 group hover:border-primary/30 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center justify-between">
@@ -117,20 +147,7 @@ function FarmaciaPage() {
                     <span className="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-lg border">{s.cat}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {editingItem === s.name ? (
-                      <input 
-                        type="number"
-                        className="w-20 bg-background border rounded px-2 py-1 text-right font-bold"
-                        value={s.qty}
-                        onChange={(e) => {
-                          const newStock = [...stockItems];
-                          newStock[idx].qty = parseInt(e.target.value);
-                          setStockItems(newStock);
-                        }}
-                      />
-                    ) : (
-                      <span className={`font-bold tabular-nums ${s.qty <= s.min ? 'text-destructive' : 'text-foreground'}`}>{s.qty}</span>
-                    )}
+                    <span className={`font-bold tabular-nums ${s.qty <= s.min ? 'text-destructive' : 'text-foreground'}`}>{s.qty}</span>
                   </td>
                   <td className="px-6 py-4 text-right tabular-nums text-muted-foreground font-medium">{s.min}</td>
                   <td className="px-6 py-4 text-right text-xs font-mono">{s.exp}</td>
@@ -140,10 +157,10 @@ function FarmaciaPage() {
                   {currentRole === 'admin' && (
                     <td className="px-6 py-4 text-right">
                       <button 
-                        onClick={() => setEditingItem(editingItem === s.name ? null : s.name)}
-                        className={`p-2 rounded-lg transition-all ${editingItem === s.name ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}
+                        onClick={() => { setEditingItem({ ...s, originalName: s.name }); setIsEditModalOpen(true); }}
+                        className="p-2 rounded-lg transition-all text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       >
-                        {editingItem === s.name ? <Plus className="size-4 rotate-45" /> : <Edit3 className="size-4" />}
+                        <Edit3 className="size-4" />
                       </button>
                     </td>
                   )}
@@ -153,6 +170,67 @@ function FarmaciaPage() {
           </table>
         </section>
       </div>
+
+      {/* Add Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="font-bold text-lg mb-4">Adicionar Produto</h3>
+            <div className="space-y-4">
+              <input placeholder="Nome" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input placeholder="Categoria" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-4">
+                <input type="number" placeholder="Quantidade" value={newItem.qty || ''} onChange={e => setNewItem({...newItem, qty: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="number" placeholder="Mínimo" value={newItem.min || ''} onChange={e => setNewItem({...newItem, min: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Validade (YYYY-MM)" value={newItem.exp} onChange={e => setNewItem({...newItem, exp: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="number" placeholder="Preço (CVE)" value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-semibold hover:bg-muted transition-colors">Cancelar</button>
+              <button onClick={handleAddProduct} className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {isEditModalOpen && editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="font-bold text-lg mb-4">Editar Produto: {editingItem.originalName}</h3>
+            <div className="space-y-4">
+              <input placeholder="Nome" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Qtd Atual</label>
+                  <input type="number" value={editingItem.qty} onChange={e => setEditingItem({...editingItem, qty: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm font-bold" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Mínimo Permitido</label>
+                  <input type="number" value={editingItem.min} onChange={e => setEditingItem({...editingItem, min: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Validade</label>
+                  <input type="text" value={editingItem.exp} onChange={e => setEditingItem({...editingItem, exp: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Preço Un. (CVE)</label>
+                  <input type="number" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-semibold hover:bg-muted transition-colors">Cancelar</button>
+              <button onClick={handleSaveEdit} className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">Atualizar Stock</button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

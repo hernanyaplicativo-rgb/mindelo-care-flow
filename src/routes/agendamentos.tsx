@@ -44,6 +44,12 @@ function AgendamentosPage() {
   const [selectedItem, setSelectedItem] = useState<typeof professionals[0] | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [patientName, setPatientName] = useState("");
+  const [convenio, setConvenio] = useState<"Particular" | "Garantia" | "INPS">("Particular");
+  
+  // Calculate pricing based on convenio
+  const precoTotal = 2500;
+  const comparticipacao = convenio === "Garantia" ? 2000 : convenio === "INPS" ? 1500 : 0;
+  const precoUtente = precoTotal - comparticipacao;
   
   // App state to hold confirmed appointments
   const [appointments, setAppointments] = useState<Array<{ id: number, patient: string, professional: string, time: string, status: 'scheduled' | 'arrived' | 'triage' }>>([
@@ -85,8 +91,30 @@ function AgendamentosPage() {
         patient: patientName,
         professional: selectedItem.name,
         time: selectedTime,
-        status: 'scheduled' as const
+        status: 'scheduled' as 'scheduled' | 'arrived' | 'triage'
       }].sort((a, b) => a.time.localeCompare(b.time)));
+
+      // Sync with Faturação via localStorage
+      const savedInvoicesStr = localStorage.getItem('invoicesData');
+      const initialInvoices = [
+        { n: "FT 2026/0412", patient: "Maria Évora", value: 3500, status: "Pago", method: "Vinti4" },
+        { n: "FT 2026/0411", patient: "João Silva", value: 12800, status: "INPS", method: "Convénio" },
+        { n: "FT 2026/0410", patient: "Ana Tavares", value: 5200, status: "Pago", method: "Numerário" },
+        { n: "FT 2026/0409", patient: "Pedro Lima", value: 28000, status: "Pendente", method: "Garantia" },
+        { n: "FT 2026/0408", patient: "Sofia Brito", value: 1800, status: "Pago", method: "MobiCash" },
+      ];
+      let savedInvoices = savedInvoicesStr ? JSON.parse(savedInvoicesStr) : initialInvoices;
+      
+      const n = `FT 2026/${(413 + savedInvoices.length).toString().padStart(4, '0')}`;
+      const newInvoice = {
+        n,
+        patient: patientName,
+        value: precoUtente,
+        status: "Pendente",
+        method: convenio
+      };
+      
+      localStorage.setItem('invoicesData', JSON.stringify([newInvoice, ...savedInvoices]));
       
       setIsConfirming(false);
       setShowSuccess(true);
@@ -95,6 +123,7 @@ function AgendamentosPage() {
         setShowSuccess(false);
         setSelectedTime(null);
         setPatientName("");
+        setConvenio("Particular");
       }, 3000);
     }, 800);
   };
@@ -263,18 +292,56 @@ function AgendamentosPage() {
                   )}
 
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="text-[10px] uppercase font-bold tracking-widest text-primary mb-1 block">Nome do Utente</label>
-                      <input 
-                        value={patientName}
-                        onChange={(e) => setPatientName(e.target.value)}
-                        placeholder="Ex: Carlos Fortes"
-                        className="w-full bg-background border rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="text-[10px] uppercase font-bold tracking-widest text-primary mb-1 block">Nome do Utente</label>
+                        <input 
+                          value={patientName}
+                          onChange={(e) => setPatientName(e.target.value)}
+                          placeholder="Ex: Carlos Fortes"
+                          className="w-full bg-background border rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                        />
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="text-[10px] uppercase font-bold tracking-widest text-primary mb-1 block">Entidade Financeira</label>
+                        <select 
+                          value={convenio}
+                          onChange={(e) => setConvenio(e.target.value as any)}
+                          className="w-full bg-background border rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                        >
+                          <option value="Particular">Particular (Sem Seguro)</option>
+                          <option value="Garantia">Garantia Seguros</option>
+                          <option value="INPS">INPS</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="text-sm flex flex-col gap-1 text-muted-foreground font-medium">
-                      <div className="flex items-center gap-2"><UserCheck className="size-4" /> <span>Especialista: <strong className="text-foreground">{selectedItem.name}</strong></span></div>
-                      <div className="flex items-center gap-2"><Clock className="size-4" /> <span>Hora Reservada: <strong className="text-primary">{selectedTime}</strong></span></div>
+                    
+                    <div className="text-sm flex flex-col gap-1 text-muted-foreground font-medium bg-background/50 p-3 rounded-xl border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2"><UserCheck className="size-4 text-primary" /> Especialista:</div>
+                        <strong className="text-foreground">{selectedItem.name}</strong>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2"><Clock className="size-4 text-primary" /> Hora Reservada:</div>
+                        <strong className="text-primary">{selectedTime}</strong>
+                      </div>
+                      
+                      <div className="my-1 border-t border-dashed" />
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Valor Base Consulta:</span>
+                        <span>{precoTotal.toLocaleString('pt-PT')} CVE</span>
+                      </div>
+                      {comparticipacao > 0 && (
+                        <div className="flex items-center justify-between text-xs text-emerald-600">
+                          <span>Comparticipação ({convenio}):</span>
+                          <span>- {comparticipacao.toLocaleString('pt-PT')} CVE</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="font-bold text-foreground">A Pagar (Utente):</span>
+                        <strong className="text-lg text-foreground">{precoUtente.toLocaleString('pt-PT')} CVE</strong>
+                      </div>
                     </div>
                   </div>
                   
