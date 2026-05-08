@@ -1,11 +1,34 @@
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, Search, ShieldCheck, Menu, X } from "lucide-react";
+import { Bell, Search, ShieldCheck, Menu, X, ChevronRight, Home, Siren } from "lucide-react";
 import { useState } from "react";
+import { Link, useLocation } from "@tanstack/react-router";
+
+const ROUTE_LABELS: Record<string, string> = {
+  "": "Recepção",
+  "agendamentos": "Agendamentos",
+  "marcacao-online": "Marcação Online",
+  "triagem": "Triagem Manchester",
+  "prontuario": "Prontuário (EMR)",
+  "ditado": "Ditado IA",
+  "telemedicina": "Telemedicina",
+  "farmacia": "Farmácia & Stock",
+  "faturacao": "Faturação & Caixa",
+  "parcerias": "Parcerias & Seguros",
+  "escala": "Gestão de Escalas",
+  "analytics": "Analytics & BI",
+  "comunicacao": "WhatsApp & SMS",
+  "mobile": "Quiosque (Tablet)",
+  "portal": "Portal do Paciente",
+  "sos": "SOS · Emergência",
+};
 
 export function DashboardLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const now = new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const segments = location.pathname.split("/").filter(Boolean);
+  const currentLabel = segments.length === 0 ? "Recepção" : (ROUTE_LABELS[segments[0]] ?? segments[0]);
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar — desktop & tablet */}
@@ -46,6 +69,9 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
               <input placeholder="Buscar paciente, NIF, agendamento…" className="bg-transparent outline-none flex-1 placeholder:text-muted-foreground/70" />
               <kbd className="text-[10px] border rounded px-1 py-0.5 bg-card">⌘K</kbd>
             </div>
+            <Link to="/sos" className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-destructive/10 text-destructive border border-destructive/30 text-xs font-bold hover:bg-destructive hover:text-destructive-foreground transition-colors">
+              <Siren className="size-3.5" /> SOS
+            </Link>
             <button className="size-9 rounded-md hover:bg-muted grid place-items-center text-muted-foreground relative transition-colors">
               <Bell className="size-4" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary ring-2 ring-card" />
@@ -61,6 +87,20 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
             </div>
           </div>
         </header>
+        {/* Breadcrumbs sub-bar (sticky) */}
+        <div className="h-10 border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-16 z-[9] flex items-center px-4 lg:px-8 text-xs">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-muted-foreground min-w-0 overflow-x-auto custom-scrollbar">
+            <Link to="/" className="inline-flex items-center gap-1 hover:text-foreground font-medium shrink-0">
+              <Home className="size-3" /> Medicentro
+            </Link>
+            {segments.length > 0 && (
+              <>
+                <ChevronRight className="size-3 opacity-50 shrink-0" />
+                <span className="font-semibold text-foreground truncate">{currentLabel}</span>
+              </>
+            )}
+          </nav>
+        </div>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
     </div>
