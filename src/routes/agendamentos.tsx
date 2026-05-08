@@ -85,7 +85,7 @@ function AgendamentosPage() {
         patient: patientName,
         professional: selectedItem.name,
         time: selectedTime,
-        status: 'scheduled'
+        status: 'scheduled' as const
       }].sort((a, b) => a.time.localeCompare(b.time)));
       
       setIsConfirming(false);
