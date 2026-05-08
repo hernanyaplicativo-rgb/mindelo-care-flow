@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
-import { Video, Mic, MicOff, VideoOff, PhoneMissed, Users, Settings, Activity, Camera, Monitor, Play, User, Clock, AlertCircle } from "lucide-react";
+import { Video, Mic, MicOff, VideoOff, PhoneMissed, Users, Settings, Activity, Camera, Monitor, Play, User, Clock, AlertCircle, FileHeart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRole } from "@/hooks/useRole";
 
