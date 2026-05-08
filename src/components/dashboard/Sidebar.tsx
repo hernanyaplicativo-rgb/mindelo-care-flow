@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User } from "lucide-react";
+import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User, Siren } from "lucide-react";
 import { useRole, Unit } from "@/hooks/useRole";
 
 type Role = 'admin' | 'doctor' | 'reception' | 'patient';
@@ -34,6 +34,7 @@ const allItems = [
   // Paciente
   { to: "/portal", label: "Portal do Paciente", icon: UserCircle, roles: ['patient'] },
   { to: "/marcacao-online", label: "Marcação Online", icon: Smartphone, roles: ['patient'] },
+  { to: "/sos", label: "SOS · Emergência", icon: Siren, roles: ['admin', 'reception', 'doctor', 'patient'] },
 ];
 
 export function Sidebar({ className = "" }: { className?: string }) {

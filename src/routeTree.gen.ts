@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TriagemRouteImport } from './routes/triagem'
 import { Route as TelemedicinaRouteImport } from './routes/telemedicina'
+import { Route as SosRouteImport } from './routes/sos'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
@@ -33,6 +34,11 @@ const TriagemRoute = TriagemRouteImport.update({
 const TelemedicinaRoute = TelemedicinaRouteImport.update({
   id: '/telemedicina',
   path: '/telemedicina',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SosRoute = SosRouteImport.update({
+  id: '/sos',
+  path: '/sos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProntuarioRoute = ProntuarioRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/prontuario': typeof ProntuarioRoute
+  '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/prontuario': typeof ProntuarioRoute
+  '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/prontuario': typeof ProntuarioRoute
+  '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
   '/triagem': typeof TriagemRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/parcerias'
     | '/portal'
     | '/prontuario'
+    | '/sos'
     | '/telemedicina'
     | '/triagem'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/parcerias'
     | '/portal'
     | '/prontuario'
+    | '/sos'
     | '/telemedicina'
     | '/triagem'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/parcerias'
     | '/portal'
     | '/prontuario'
+    | '/sos'
     | '/telemedicina'
     | '/triagem'
   fileRoutesById: FileRoutesById
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   ParceriasRoute: typeof ParceriasRoute
   PortalRoute: typeof PortalRoute
   ProntuarioRoute: typeof ProntuarioRoute
+  SosRoute: typeof SosRoute
   TelemedicinaRoute: typeof TelemedicinaRoute
   TriagemRoute: typeof TriagemRoute
 }
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/telemedicina'
       fullPath: '/telemedicina'
       preLoaderRoute: typeof TelemedicinaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sos': {
+      id: '/sos'
+      path: '/sos'
+      fullPath: '/sos'
+      preLoaderRoute: typeof SosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prontuario': {
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParceriasRoute: ParceriasRoute,
   PortalRoute: PortalRoute,
   ProntuarioRoute: ProntuarioRoute,
+  SosRoute: SosRoute,
   TelemedicinaRoute: TelemedicinaRoute,
   TriagemRoute: TriagemRoute,
 }
