@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User } from "lucide-react";
-import { useState } from "react";
 import { useRole, Unit } from "@/hooks/useRole";
 
 type Role = 'admin' | 'doctor' | 'reception' | 'patient';
@@ -37,13 +36,13 @@ const allItems = [
   { to: "/marcacao-online", label: "Marcação Online", icon: Smartphone, roles: ['patient'] },
 ];
 
-export function Sidebar() {
+export function Sidebar({ className = "" }: { className?: string }) {
   const { currentRole, setRole: setCurrentRole, currentUnit, setUnit } = useRole();
   
   const filteredItems = allItems.filter(item => item.roles.includes(currentRole));
 
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border relative">
+    <aside className={`flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border relative h-full ${className}`}>
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-[var(--primary-glow)] to-primary" />
       <div className="px-6 py-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

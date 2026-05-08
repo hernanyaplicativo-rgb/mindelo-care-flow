@@ -1,15 +1,36 @@
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, Search, ShieldCheck } from "lucide-react";
+import { Bell, Search, ShieldCheck, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 export function DashboardLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const now = new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <div className="min-h-screen flex bg-background">
-      <Sidebar />
+      {/* Sidebar — desktop & tablet */}
+      <div className="hidden lg:flex">
+        <Sidebar />
+      </div>
+      {/* Sidebar — drawer for tablet/mobile */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="relative h-full animate-in slide-in-from-left duration-200">
+            <Sidebar />
+            <button onClick={() => setMobileOpen(false)} className="absolute top-4 -right-12 size-10 rounded-full bg-card border grid place-items-center shadow-lg">
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border/60 bg-card/70 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between px-4 lg:px-8">
-          <div className="min-w-0">
+          <div className="min-w-0 flex items-center gap-3">
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden size-9 rounded-md hover:bg-muted grid place-items-center text-muted-foreground transition-colors shrink-0">
+              <Menu className="size-5" />
+            </button>
+            <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-[15px] font-semibold tracking-tight truncate">{title}</h1>
               <span className="hidden md:inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-success font-semibold bg-success/10 px-2 py-0.5 rounded-full">
@@ -17,6 +38,7 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
               </span>
             </div>
             {subtitle && <p className="text-[11px] text-muted-foreground truncate">{subtitle} · <span className="capitalize">{now}</span></p>}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2 h-9 px-3 rounded-md border border-border/60 bg-muted/40 text-xs text-muted-foreground w-64">
