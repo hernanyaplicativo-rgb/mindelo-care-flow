@@ -176,7 +176,7 @@ function FaturacaoPage() {
               <div className="size-8 rounded-lg bg-primary/10 grid place-items-center text-primary"><Wallet className="size-4" /></div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight tabular-nums">{caixaHoje.toLocaleString('pt-PT')} CVE</span>
+              <span className="text-2xl font-bold tracking-tight tabular-nums">{formatCVE(caixaHoje)}</span>
               <span className="text-[11px] text-success font-semibold">+12%</span>
             </div>
           </div>
