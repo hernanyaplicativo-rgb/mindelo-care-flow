@@ -29,15 +29,10 @@ const initialInvoices: Invoice[] = [
   { n: "FT 2026/0408", patient: "Sofia Brito", value: 1800, status: "Pago", method: "MobiCash" },
 ];
 
-const statusStyle: Record<string, string> = {
-  Pago: "bg-success/15 text-success",
-  Pendente: "bg-warning/15 text-warning",
-  INPS: "bg-primary/10 text-primary",
-};
-
 import { useRole } from "@/hooks/useRole";
 import { useState, useEffect } from "react";
 import { Settings2, Plus, Save, X } from "lucide-react";
+import { formatCVE, statusBadgeClass, methodBadgeClass } from "@/lib/format";
 
 function FaturacaoPage() {
   const { currentRole } = useRole();
@@ -46,14 +41,21 @@ function FaturacaoPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState<any>(null);
   
-  const [invoicesData, setInvoicesData] = useState<Invoice[]>(() => {
-    const saved = localStorage.getItem('invoicesData');
-    return saved ? (JSON.parse(saved) as Invoice[]) : initialInvoices;
-  });
+  const [invoicesData, setInvoicesData] = useState<Invoice[]>(initialInvoices);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('invoicesData', JSON.stringify(invoicesData));
-  }, [invoicesData]);
+    try {
+      const saved = typeof window !== "undefined" ? window.localStorage.getItem("invoicesData") : null;
+      if (saved) setInvoicesData(JSON.parse(saved) as Invoice[]);
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try { window.localStorage.setItem("invoicesData", JSON.stringify(invoicesData)); } catch {}
+  }, [invoicesData, hydrated]);
 
   const [newInvoice, setNewInvoice] = useState({ patient: "", value: 0, method: "Numerário", status: "Pago" });
 
@@ -75,6 +77,21 @@ function FaturacaoPage() {
     setInvoicesData([{ ...newInvoice, n }, ...invoicesData]);
     setNewInvoice({ patient: "", value: 0, method: "Numerário", status: "Pago" });
     setIsAddModalOpen(false);
+  };
+
+  const exportInvoiceCSV = (inv: Invoice) => {
+    const rows = [
+      ["Numero", "Paciente", "Metodo", "Estado", "Valor (CVE)"],
+      [inv.n, inv.patient, inv.method, inv.status, String(inv.value)],
+    ];
+    const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${inv.n.replace(/[^\w]+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -159,7 +176,7 @@ function FaturacaoPage() {
               <div className="size-8 rounded-lg bg-primary/10 grid place-items-center text-primary"><Wallet className="size-4" /></div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight tabular-nums">{caixaHoje.toLocaleString('pt-PT')} CVE</span>
+              <span className="text-2xl font-bold tracking-tight tabular-nums">{formatCVE(caixaHoje)}</span>
               <span className="text-[11px] text-success font-semibold">+12%</span>
             </div>
           </div>
@@ -210,10 +227,10 @@ function FaturacaoPage() {
                 <tr key={i.n} className="hover:bg-muted/30 cursor-pointer group" onClick={() => setDetailsModalOpen(i)}>
                   <td className="px-5 py-3 font-mono text-xs text-primary group-hover:underline">{i.n}</td>
                   <td className="px-5 py-3 font-medium">{i.patient}</td>
-                  <td className="px-5 py-3 text-muted-foreground text-xs">{i.method}</td>
-                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{i.value.toLocaleString('pt-PT')} CVE</td>
+                  <td className="px-5 py-3 text-xs"><span className={methodBadgeClass(i.method)}>{i.method}</span></td>
+                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{formatCVE(i.value)}</td>
                   <td className="px-5 py-3 text-right">
-                    <span className={`inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[i.status]}`}>{i.status}</span>
+                    <span className={statusBadgeClass(i.status)}>{i.status}</span>
                   </td>
                 </tr>
               ))}
@@ -267,13 +284,13 @@ function FaturacaoPage() {
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Paciente</span> <span className="font-semibold">{detailsModalOpen.patient}</span></div>
-              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Método</span> <span>{detailsModalOpen.method}</span></div>
-              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Estado</span> <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[detailsModalOpen.status]}`}>{detailsModalOpen.status}</span></div>
-              <div className="flex justify-between py-3 text-lg"><span className="font-bold text-muted-foreground">Total</span> <span className="font-bold">{detailsModalOpen.value.toLocaleString('pt-PT')} CVE</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Método</span> <span className={methodBadgeClass(detailsModalOpen.method)}>{detailsModalOpen.method}</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Estado</span> <span className={statusBadgeClass(detailsModalOpen.status)}>{detailsModalOpen.status}</span></div>
+              <div className="flex justify-between py-3 text-lg"><span className="font-bold text-muted-foreground">Total</span> <span className="font-bold">{formatCVE(detailsModalOpen.value)}</span></div>
             </div>
             <div className="mt-6">
-              <button onClick={() => setDetailsModalOpen(null)} className="w-full py-2.5 rounded-xl border bg-background text-sm font-bold shadow-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
-                <Download className="size-4" /> Exportar PDF
+              <button onClick={() => exportInvoiceCSV(detailsModalOpen)} className="w-full py-2.5 rounded-xl border bg-background text-sm font-bold shadow-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
+                <Download className="size-4" /> Exportar Recibo (CSV)
               </button>
             </div>
           </div>
