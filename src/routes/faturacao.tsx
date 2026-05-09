@@ -29,15 +29,10 @@ const initialInvoices: Invoice[] = [
   { n: "FT 2026/0408", patient: "Sofia Brito", value: 1800, status: "Pago", method: "MobiCash" },
 ];
 
-const statusStyle: Record<string, string> = {
-  Pago: "bg-success/15 text-success",
-  Pendente: "bg-warning/15 text-warning",
-  INPS: "bg-primary/10 text-primary",
-};
-
 import { useRole } from "@/hooks/useRole";
 import { useState, useEffect } from "react";
 import { Settings2, Plus, Save, X } from "lucide-react";
+import { formatCVE, statusBadgeClass, methodBadgeClass } from "@/lib/format";
 
 function FaturacaoPage() {
   const { currentRole } = useRole();
