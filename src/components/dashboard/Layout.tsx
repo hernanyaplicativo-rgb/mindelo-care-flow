@@ -103,23 +103,23 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
         </div>
       )}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border/60 bg-card/70 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between px-4 lg:px-8">
-          <div className="min-w-0 flex items-center gap-3">
+        <header className="h-16 border-b border-border/60 bg-card/90 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between gap-2 px-3 sm:px-4 lg:px-8">
+          <div className="min-w-0 flex flex-1 items-center gap-3">
             <button onClick={() => setMobileOpen(true)} className="lg:hidden size-9 rounded-md hover:bg-muted grid place-items-center text-muted-foreground transition-colors shrink-0">
               <Menu className="size-5" />
             </button>
             <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-[15px] font-semibold tracking-tight truncate">{title}</h1>
-              <span className="hidden md:inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-success font-semibold bg-success/10 px-2 py-0.5 rounded-full">
+              <h1 className="text-[14px] sm:text-[15px] font-semibold tracking-tight truncate max-w-[13rem] sm:max-w-[18rem] lg:max-w-none">{title}</h1>
+              <span className="hidden xl:inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-success font-semibold bg-success/10 px-2 py-0.5 rounded-full shrink-0">
                 <ShieldCheck className="size-3" /> HIPAA · RGPD
               </span>
             </div>
             {subtitle && <p className="text-[11px] text-muted-foreground truncate">{subtitle} · <span className="capitalize">{now}</span></p>}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div ref={searchRef} className="relative hidden md:flex items-center gap-2 h-9 px-3 rounded-md border border-border/60 bg-muted/40 text-xs text-muted-foreground w-64 focus-within:ring-2 ring-primary/20 transition-all">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div ref={searchRef} className="relative hidden xl:flex items-center gap-2 h-9 px-3 rounded-md border border-border/60 bg-muted/40 text-xs text-muted-foreground w-64 focus-within:ring-2 ring-primary/20 transition-all">
               <Search className="size-3.5" />
               <input 
                 placeholder="Buscar paciente ou médico…" 
@@ -159,8 +159,8 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
                 </div>
               )}
             </div>
-            <Link to="/sos" className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-destructive/10 text-destructive border border-destructive/30 text-xs font-bold hover:bg-destructive hover:text-destructive-foreground transition-colors">
-              <Siren className="size-3.5" /> SOS
+            <Link to="/sos" className="inline-flex items-center justify-center gap-1.5 h-9 min-w-9 px-2 sm:px-3 rounded-md bg-destructive/10 text-destructive border border-destructive/30 text-xs font-bold hover:bg-destructive hover:text-destructive-foreground transition-colors">
+              <Siren className="size-3.5 shrink-0" /> <span className="hidden sm:inline">SOS</span>
             </Link>
             <button className="size-9 rounded-md hover:bg-muted grid place-items-center text-muted-foreground relative transition-colors">
               <Bell className="size-4" />
