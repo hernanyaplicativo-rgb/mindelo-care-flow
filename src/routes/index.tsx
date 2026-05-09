@@ -20,10 +20,15 @@ export const Route = createFileRoute("/")({
 });
 
 const priorityStyle: Record<string, string> = {
-  Emergência: "bg-destructive text-destructive-foreground animate-pulse",
-  Urgência: "bg-warning/15 text-warning border border-warning/30",
-  Normal: "bg-muted text-muted-foreground",
-  VIP: "bg-primary text-primary-foreground",
+  'Vermelho (Emergência)': "bg-destructive text-destructive-foreground animate-pulse",
+  'Laranja (Muito Urgente)': "bg-orange-600/15 text-orange-600 border border-orange-600/30",
+  'Amarelo (Urgente)': "bg-amber-500/15 text-amber-600 border border-amber-500/30",
+  'Verde (Pouco Urgente)': "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30",
+  'Azul (Não Urgente)': "bg-blue-500/15 text-blue-600 border border-blue-500/20",
+  'Emergência': "bg-destructive text-destructive-foreground animate-pulse",
+  'Urgência': "bg-warning/15 text-warning border border-warning/30",
+  'Normal': "bg-muted text-muted-foreground",
+  'VIP': "bg-primary text-primary-foreground",
 };
 
 function Index() {
@@ -170,6 +175,11 @@ function Index() {
 
     if (queueData) {
       const priorityWeight: Record<string, number> = {
+        'Vermelho (Emergência)': 5,
+        'Laranja (Muito Urgente)': 4,
+        'Amarelo (Urgente)': 3,
+        'Verde (Pouco Urgente)': 2,
+        'Azul (Não Urgente)': 1,
         'Vermelho': 5,
         'Laranja': 4,
         'Amarelo': 3,
@@ -305,8 +315,8 @@ function Index() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-medium truncate">{q.paciente_nome || q.name}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${priorityClass}`}>
-                            {q.prioridade}
+                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap ${priorityClass}`}>
+                            {q.prioridade?.split(' ')[0] || q.prioridade}
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground truncate">{q.seguro ? q.seguro + ' · ' : ''}{q.sintoma}</div>

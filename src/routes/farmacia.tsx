@@ -40,8 +40,16 @@ function FarmaciaPage() {
   const itemsWithStatus = stockItems.map(s => {
     let status = "ok";
     if (s.qty <= s.min) status = "low";
-    // basic check for exp logic if needed, but for now fallback to basic
-    if (s.name === "Adrenalina 1mg/ml") status = "exp"; 
+    
+    // Date-based expiration check (YYYY-MM)
+    const [year, month] = s.exp.split('-').map(Number);
+    const expDate = new Date(year, month - 1);
+    const now = new Date();
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(now.getMonth() + 3);
+    
+    if (expDate <= threeMonthsFromNow) status = "exp";
+    
     return { ...s, status };
   });
 
@@ -180,12 +188,12 @@ function FarmaciaPage() {
               <input placeholder="Nome" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               <input placeholder="Categoria" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Quantidade" value={newItem.qty || ''} onChange={e => setNewItem({...newItem, qty: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                <input type="number" placeholder="Mínimo" value={newItem.min || ''} onChange={e => setNewItem({...newItem, min: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="number" placeholder="Quantidade" value={newItem.qty || ''} onChange={e => setNewItem({...newItem, qty: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="number" placeholder="Mínimo" value={newItem.min || ''} onChange={e => setNewItem({...newItem, min: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <input type="text" placeholder="Validade (YYYY-MM)" value={newItem.exp} onChange={e => setNewItem({...newItem, exp: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                <input type="number" placeholder="Preço (CVE)" value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="number" placeholder="Preço (CVE)" value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
@@ -206,11 +214,11 @@ function FarmaciaPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Qtd Atual</label>
-                  <input type="number" value={editingItem.qty} onChange={e => setEditingItem({...editingItem, qty: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm font-bold" />
+                  <input type="number" value={editingItem.qty} onChange={e => setEditingItem({...editingItem, qty: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm font-bold" />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Mínimo Permitido</label>
-                  <input type="number" value={editingItem.min} onChange={e => setEditingItem({...editingItem, min: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <input type="number" value={editingItem.min} onChange={e => setEditingItem({...editingItem, min: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -220,7 +228,7 @@ function FarmaciaPage() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Preço Un. (CVE)</label>
-                  <input type="number" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <input type="number" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
             </div>

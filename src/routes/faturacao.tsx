@@ -66,10 +66,10 @@ function FaturacaoPage() {
     { id: 4, service: "Urgência (Manchester)", price: "5.000", category: "Urgência" },
   ]);
 
-  const filteredInvoices = invoicesData.filter(i => i.patient.toLowerCase().includes(q.toLowerCase()) || i.n.toLowerCase().includes(q.toLowerCase()));
+  const filteredInvoices = invoicesData.filter((i: any) => i.patient.toLowerCase().includes(q.toLowerCase()) || i.n.toLowerCase().includes(q.toLowerCase()));
   
   // Calculate Caixa Hoje (Only "Pago")
-  const caixaHoje = invoicesData.filter(i => i.status === "Pago").reduce((acc, i) => acc + i.value, 0);
+  const caixaHoje = invoicesData.filter((i: any) => i.status === "Pago").reduce((acc: number, i: any) => acc + i.value, 0);
 
   const handleAddInvoice = () => {
     if (!newInvoice.patient) return;
@@ -223,7 +223,7 @@ function FaturacaoPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredInvoices.map((i) => (
+              {filteredInvoices.map((i: any) => (
                 <tr key={i.n} className="hover:bg-muted/30 cursor-pointer group" onClick={() => setDetailsModalOpen(i)}>
                   <td className="px-5 py-3 font-mono text-xs text-primary group-hover:underline">{i.n}</td>
                   <td className="px-5 py-3 font-medium">{i.patient}</td>
@@ -249,7 +249,7 @@ function FaturacaoPage() {
             <h3 className="font-bold text-lg mb-4">Criar Nova Fatura</h3>
             <div className="space-y-4">
               <input placeholder="Nome do Paciente" value={newInvoice.patient} onChange={e => setNewInvoice({...newInvoice, patient: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input type="number" placeholder="Valor (CVE)" value={newInvoice.value || ''} onChange={e => setNewInvoice({...newInvoice, value: parseInt(e.target.value)})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input type="number" placeholder="Valor (CVE)" value={newInvoice.value || ''} onChange={e => setNewInvoice({...newInvoice, value: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               <select value={newInvoice.method} onChange={e => setNewInvoice({...newInvoice, method: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
                 <option value="Numerário">Numerário</option>
                 <option value="Vinti4">Vinti4</option>

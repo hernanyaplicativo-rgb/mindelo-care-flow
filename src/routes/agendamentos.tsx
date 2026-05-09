@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Calendar, Clock, Lock, Sparkles, Stethoscope, Microscope, Search, UserCheck, CheckCircle2, AlertCircle } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/agendamentos")({
   head: () => ({
@@ -52,10 +53,53 @@ function AgendamentosPage() {
   const precoUtente = precoTotal - comparticipacao;
   
   // App state to hold confirmed appointments
-  const [appointments, setAppointments] = useState<Array<{ id: number, patient: string, professional: string, time: string, status: 'scheduled' | 'arrived' | 'triage' }>>([
+  const [appointments, setAppointments] = useState<Array<{ id: number | string, patient: string, professional: string, time: string, status: 'scheduled' | 'arrived' | 'triage' }>>([
     { id: 101, patient: "Marie Dubois", professional: "Dr. Júlio Wahnon", time: "09:30", status: 'triage' },
     { id: 102, patient: "António Neves", professional: "Dra. Alicia Wahnon", time: "10:00", status: 'arrived' },
   ]);
+
+  const [leftTab, setLeftTab] = useState<"fila" | "pendentes">("fila");
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      const { data } = await supabase.from('appointments').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+      if (data) setPendingRequests(data);
+    };
+    fetchPending();
+
+    const channel = supabase
+      .channel('public:appointments:recepcao')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+        fetchPending();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleConfirmRequest = async (req: any, newDate?: string, newTime?: string) => {
+    await supabase.from('appointments').update({ 
+      status: 'confirmed',
+      ...(newDate && newTime ? { appointment_date: newDate, appointment_time: newTime } : {})
+    }).eq('id', req.id);
+    
+    const reqTime = newTime || req.appointment_time;
+    setAppointments(prev => [...prev, {
+      id: req.id,
+      patient: req.patient_name,
+      professional: req.professional,
+      time: reqTime,
+      status: 'scheduled' as const
+    }].sort((a, b) => a.time.localeCompare(b.time)));
+
+    setEditingId(null);
+  };
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -128,7 +172,7 @@ function AgendamentosPage() {
     }, 800);
   };
 
-  const updateStatus = (id: number, newStatus: 'scheduled' | 'arrived' | 'triage') => {
+  const updateStatus = (id: number | string, newStatus: 'scheduled' | 'arrived' | 'triage') => {
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
   };
 
@@ -138,41 +182,103 @@ function AgendamentosPage() {
         
         {/* Left Panel: Waitlist / Queue (Recepção Life) */}
         <div className="xl:col-span-1 flex flex-col rounded-2xl border bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
-            <h3 className="font-bold text-sm">Fila de Hoje</h3>
-            <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full">{appointments.length} Utentes</span>
+          <div className="flex bg-muted/30 border-b">
+            <button 
+              onClick={() => setLeftTab("fila")}
+              className={`flex-1 py-3 text-xs font-bold transition-all ${leftTab === "fila" ? "bg-background text-primary border-b-2 border-primary" : "text-muted-foreground hover:bg-muted/50"}`}
+            >
+              Fila Hoje <span className="ml-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">{appointments.length}</span>
+            </button>
+            <button 
+              onClick={() => setLeftTab("pendentes")}
+              className={`flex-1 py-3 text-xs font-bold transition-all relative ${leftTab === "pendentes" ? "bg-background text-primary border-b-2 border-primary" : "text-muted-foreground hover:bg-muted/50"}`}
+            >
+              Pedidos <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${pendingRequests.length > 0 ? "bg-amber-500/10 text-amber-600" : "bg-muted text-muted-foreground"}`}>{pendingRequests.length}</span>
+              {pendingRequests.length > 0 && <span className="absolute top-2 right-2 flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span className="relative inline-flex rounded-full size-2 bg-amber-500"></span></span>}
+            </button>
           </div>
+
           <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-            {appointments.length === 0 && (
-              <div className="text-center text-muted-foreground text-sm py-10">Nenhum paciente agendado hoje.</div>
+            {leftTab === "fila" ? (
+              <>
+                {appointments.length === 0 && (
+                  <div className="text-center text-muted-foreground text-sm py-10">Nenhum paciente agendado hoje.</div>
+                )}
+                {appointments.map(app => (
+                  <div key={app.id} className="p-3 rounded-xl border bg-card shadow-sm group">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-bold text-sm truncate pr-2">{app.patient}</div>
+                      <div className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{app.time}</div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5">
+                      <Stethoscope className="size-3" /> <span className="truncate">{app.professional}</span>
+                    </div>
+                    
+                    {/* Reception Controls */}
+                    <div className="flex bg-muted/50 p-1 rounded-lg">
+                      <button 
+                        onClick={() => updateStatus(app.id, 'scheduled')}
+                        className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'scheduled' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:bg-background/50'}`}
+                      >Agendado</button>
+                      <button 
+                        onClick={() => updateStatus(app.id, 'arrived')}
+                        className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'arrived' ? 'bg-blue-500/20 text-blue-700 shadow-sm' : 'text-muted-foreground hover:bg-background/50'}`}
+                      >Chegou</button>
+                      <button 
+                        onClick={() => updateStatus(app.id, 'triage')}
+                        className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'triage' ? 'bg-orange-500/20 text-orange-700 shadow-sm' : 'text-muted-foreground hover:bg-background/50'}`}
+                      >Em Triagem</button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                {pendingRequests.length === 0 && (
+                  <div className="text-center text-muted-foreground text-sm py-10">Nenhum pedido online pendente.</div>
+                )}
+                {pendingRequests.map(req => (
+                  <div key={req.id} className="p-3 rounded-xl border bg-amber-500/5 shadow-sm group border-amber-500/20">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-bold text-sm truncate pr-2">{req.patient_name}</div>
+                      <div className="text-[10px] font-mono bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded">{req.appointment_date}</div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-3 flex flex-col gap-1">
+                      <span className="flex items-center gap-1.5"><Stethoscope className="size-3" /> {req.professional}</span>
+                      <span className="flex items-center gap-1.5"><Clock className="size-3" /> {req.appointment_time}</span>
+                    </div>
+                    
+                    {editingId === req.id ? (
+                      <div className="bg-background rounded-lg p-2 border space-y-2 mb-2 shadow-inner">
+                        <div className="flex gap-2">
+                          <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className="w-full text-xs p-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+                          <input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} className="w-full text-xs p-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingId(null)} className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-muted text-muted-foreground hover:bg-muted/80">Cancelar</button>
+                          <button onClick={() => handleConfirmRequest(req, editDate, editTime)} className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-primary text-primary-foreground hover:bg-primary/90">Confirmar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleConfirmRequest(req)}
+                          className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-success/10 text-success hover:bg-success/20 transition-all border border-success/20"
+                        >
+                          Confirmar
+                        </button>
+                        <button 
+                          onClick={() => { setEditingId(req.id); setEditDate(req.appointment_date); setEditTime(req.appointment_time); }}
+                          className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-background border hover:bg-muted transition-all"
+                        >
+                          Sugerir Horário
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
             )}
-            {appointments.map(app => (
-              <div key={app.id} className="p-3 rounded-xl border bg-card shadow-sm group">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="font-bold text-sm truncate pr-2">{app.patient}</div>
-                  <div className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{app.time}</div>
-                </div>
-                <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5">
-                  <Stethoscope className="size-3" /> <span className="truncate">{app.professional}</span>
-                </div>
-                
-                {/* Reception Controls */}
-                <div className="flex bg-muted/50 p-1 rounded-lg">
-                  <button 
-                    onClick={() => updateStatus(app.id, 'scheduled')}
-                    className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'scheduled' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:bg-background/50'}`}
-                  >Agendado</button>
-                  <button 
-                    onClick={() => updateStatus(app.id, 'arrived')}
-                    className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'arrived' ? 'bg-blue-500/20 text-blue-700 shadow-sm' : 'text-muted-foreground hover:bg-background/50'}`}
-                  >Chegou</button>
-                  <button 
-                    onClick={() => updateStatus(app.id, 'triage')}
-                    className={`flex-1 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${app.status === 'triage' ? 'bg-orange-500/20 text-orange-700 shadow-sm' : 'text-muted-foreground hover:bg-background/50'}`}
-                  >Em Triagem</button>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 

@@ -20,12 +20,24 @@ const patients = [
   { id: 4, name: "Pedro Lima", age: 31, doc: "4445566", insurance: "Particular", risk: "—", bloodType: "AB+", allergies: "Nenhuma" },
 ];
 
-const history = [
-  { id: 1, d: "2026-05-02", t: "Consulta · Cardiologia", who: "Dr. Fernando Lopes", note: "Paciente refere palpitações eventuais. TA 145/95. ECG sem alterações agudas. Ajuste de losartan para 50mg/dia. Retorno em 30 dias.", type: "consulta" },
-  { id: 2, d: "2026-04-18", t: "Resultados de Análises", who: "Lab. Medicentro", note: "Glicemia em jejum: 132mg/dl (Alta). HbA1c: 6.8%. Colesterol Total: 190mg/dl.", type: "exame" },
-  { id: 3, d: "2026-03-10", t: "Ecografia Abdominal", who: "Imagiologia", note: "Fígado com dimensões e ecogenicidade normais. Vesícula biliar sem cálculos. Sem alterações significativas nos demais órgãos.", type: "exame" },
-  { id: 4, d: "2025-12-04", t: "Triagem de Urgência", who: "Manchester · Amarelo", note: "Queixa principal: Cefaleia intensa de início súbito há 2h. Sinais vitais estáveis. Resolução com analgesia EV.", type: "triagem" },
-];
+const historyData: Record<number, any[]> = {
+  1: [
+    { id: 1, d: "2026-05-02", t: "Consulta · Cardiologia", who: "Dr. Fernando Lopes", note: "Paciente refere palpitações eventuais. TA 145/95. ECG sem alterações agudas. Ajuste de losartan para 50mg/dia. Retorno em 30 dias.", type: "consulta" },
+    { id: 2, d: "2026-04-18", t: "Resultados de Análises", who: "Lab. Medicentro", note: "Glicemia em jejum: 132mg/dl (Alta). HbA1c: 6.8%. Colesterol Total: 190mg/dl.", type: "exame" },
+    { id: 3, d: "2026-03-10", t: "Ecografia Abdominal", who: "Imagiologia", note: "Fígado com dimensões e ecogenicidade normais. Vesícula biliar sem cálculos. Sem alterações significativas nos demais órgãos.", type: "exame" },
+    { id: 4, d: "2025-12-04", t: "Triagem de Urgência", who: "Manchester · Amarelo", note: "Queixa principal: Cefaleia intensa de início súbito há 2h. Sinais vitais estáveis. Resolução com analgesia EV.", type: "triagem" },
+  ],
+  2: [
+    { id: 10, d: "2026-05-05", t: "Consulta · Nutrição", who: "Dra. Alicia Wahnon", note: "Acompanhamento de diabetes tipo 2. Peso estável. Paciente com boa adesão à dieta, mas refere dificuldades nos fins de semana.", type: "consulta" },
+    { id: 11, d: "2026-04-10", t: "Fundo de Olho", who: "Oftalmologia", note: "Sem sinais de retinopatia diabética. Pressão intraocular normal.", type: "exame" },
+  ],
+  3: [
+    { id: 20, d: "2026-04-20", t: "Consulta · Pediatria", who: "Dra. Carlina Santos", note: "Exacerbação de asma devido a mudança de tempo. Prescrito salbutamol SOS.", type: "consulta" },
+  ],
+  4: [
+    { id: 30, d: "2026-05-01", t: "Check-up Geral", who: "Dr. Júlio Wahnon", note: "Paciente saudável, sem queixas. Exames de rotina solicitados.", type: "consulta" },
+  ]
+};
 
 import { useRole } from "@/hooks/useRole";
 import { Settings2, Sliders, Thermometer, Droplets, Heart } from "lucide-react";
@@ -301,7 +313,7 @@ function ProntuarioPage() {
             {activeTab === "historia" && (
               <div className="rounded-2xl border bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ boxShadow: "var(--shadow-card)" }}>
                 <ol className="divide-y divide-border/50">
-                  {history.map((h) => (
+                  {(historyData[sel.id] || []).map((h: any) => (
                     <li key={h.id} className="p-5 flex gap-4 hover:bg-muted/20 transition-colors group">
                       <div className="flex flex-col items-center gap-2">
                         <div className={`size-8 rounded-full flex items-center justify-center shrink-0 border-2 border-background shadow-sm ${

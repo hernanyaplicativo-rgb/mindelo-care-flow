@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   Stethoscope, HeartPulse, Baby, Bone, Brain, Eye, Microscope,
   Calendar, Clock, Check, ChevronLeft, ChevronRight, Smartphone,
@@ -71,6 +72,9 @@ function MarcacaoOnlinePage() {
   const [phone, setPhone] = useState("");
   const [insurance, setInsurance] = useState("Particular");
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
+  const [appointmentStatus, setAppointmentStatus] = useState<string>("pending");
 
   const days = useMemo(() => getNextDays(10), []);
   const availableTimes = useMemo(
@@ -86,6 +90,57 @@ function MarcacaoOnlinePage() {
   const reset = () => {
     setStep(1); setSpec(null); setDoctor(null); setDay(null);
     setTime(null); setName(""); setPhone(""); setInsurance("Particular"); setDone(false);
+    setAppointmentId(null); setAppointmentStatus("pending");
+  };
+
+  useEffect(() => {
+    if (!appointmentId) return;
+
+    const channel = supabase
+      .channel(`public:appointments:id=eq.${appointmentId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `id=eq.${appointmentId}` },
+        (payload) => {
+          setAppointmentStatus(payload.new.status);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [appointmentId]);
+
+  const handleNext = async () => {
+    if (step === 4) {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.from('appointments').insert({
+          patient_name: name,
+          phone,
+          specialty: spec?.name,
+          professional: doctor,
+          appointment_date: day,
+          appointment_time: time,
+          unit: unit === "sede" ? "Sede" : "Monte Sossego",
+          insurance,
+          status: 'pending'
+        }).select().single();
+        
+        if (data) {
+          setAppointmentId(data.id);
+          setAppointmentStatus(data.status);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+        setDone(true);
+      }
+    } else {
+      setStep((s) => s + 1);
+    }
   };
 
   return (
@@ -128,11 +183,23 @@ function MarcacaoOnlinePage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {done ? (
                 <div className="flex flex-col items-center text-center py-8 animate-in fade-in zoom-in">
-                  <div className="size-20 rounded-full bg-success/15 grid place-items-center mb-4">
-                    <Check className="size-10 text-success" />
-                  </div>
-                  <h3 className="text-xl font-bold">Consulta marcada!</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Enviámos a confirmação por SMS para <strong>{phone}</strong>.</p>
+                  {appointmentStatus === 'confirmed' ? (
+                    <>
+                      <div className="size-20 rounded-full bg-success/15 grid place-items-center mb-4">
+                        <Check className="size-10 text-success" />
+                      </div>
+                      <h3 className="text-xl font-bold">Consulta confirmada!</h3>
+                      <p className="text-sm text-muted-foreground mt-1">A sua reserva foi confirmada pela recepção. SMS enviado para <strong>{phone}</strong>.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="size-20 rounded-full bg-amber-500/15 grid place-items-center mb-4">
+                        <Clock className="size-10 text-amber-500 animate-pulse" />
+                      </div>
+                      <h3 className="text-xl font-bold">Pedido Enviado</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Seu pedido foi enviado. Aguarde a confirmação da recepção.</p>
+                    </>
+                  )}
                   <div className="mt-6 w-full rounded-xl border bg-muted/30 p-4 text-left text-sm space-y-2">
                     <div className="flex justify-between"><span className="text-muted-foreground">Especialidade</span><span className="font-semibold">{spec?.name}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Profissional</span><span className="font-semibold">{doctor}</span></div>
@@ -321,12 +388,14 @@ function MarcacaoOnlinePage() {
                   </button>
                 )}
                 <button
-                  disabled={!canNext}
-                  onClick={() => (step === 4 ? setDone(true) : setStep((s) => s + 1))}
+                  disabled={!canNext || loading}
+                  onClick={handleNext}
                   className="flex-1 h-11 rounded-xl font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition hover:opacity-90"
                   style={{ background: "var(--gradient-primary)" }}
                 >
-                  {step === 4 ? <>Confirmar marcação <Check className="size-4" /></> : <>Continuar <ChevronRight className="size-4" /></>}
+                  {loading ? (
+                    <div className="size-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  ) : step === 4 ? <>Confirmar marcação <Check className="size-4" /></> : <>Continuar <ChevronRight className="size-4" /></>}
                 </button>
               </div>
             )}
