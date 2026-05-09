@@ -45,3 +45,37 @@ USING (true); -- Para efeitos de demo (ajustar com roles para prod)
 -- Se a publication não existir, criá-la
 -- CREATE PUBLICATION supabase_realtime FOR ALL TABLES;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
+
+-- 5. Create professionals table
+CREATE TABLE public.professionals (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  specialty TEXT NOT NULL,
+  license_number TEXT,
+  phone TEXT,
+  role TEXT DEFAULT 'doctor' CHECK (role IN ('doctor', 'nurse', 'admin', 'tech')),
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Enable Row Level Security (RLS) for professionals
+ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
+
+-- 7. Create RLS Policies for professionals
+-- Anyone can view active professionals (for scheduling, scaling)
+CREATE POLICY "Anyone can view active professionals"
+ON public.professionals FOR SELECT
+TO authenticated, anon
+USING (status = 'active');
+
+-- Only admins can view inactive professionals, insert, update, or delete
+-- (Since we do not have strict JWT role checking in this demo, we simulate it via app logic or permit all for demo purposes, 
+-- but ideally we would check (auth.jwt() ->> 'role') = 'admin' or similar)
+CREATE POLICY "Admins can manage professionals"
+ON public.professionals FOR ALL
+TO authenticated, anon
+USING (true) WITH CHECK (true); -- For demo purposes. In production: USING (auth.jwt()->>'role' = 'admin')
+
+-- 8. Add to Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE public.professionals;

@@ -13,6 +13,7 @@ import { Route as TriagemRouteImport } from './routes/triagem'
 import { Route as TelemedicinaRouteImport } from './routes/telemedicina'
 import { Route as SosRouteImport } from './routes/sos'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
+import { Route as ProfissionaisRouteImport } from './routes/profissionais'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
 import { Route as MobileRouteImport } from './routes/mobile'
@@ -44,6 +45,11 @@ const SosRoute = SosRouteImport.update({
 const ProntuarioRoute = ProntuarioRouteImport.update({
   id: '/prontuario',
   path: '/prontuario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfissionaisRoute = ProfissionaisRouteImport.update({
+  id: '/profissionais',
+  path: '/profissionais',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalRoute = PortalRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/profissionais': typeof ProfissionaisRoute
   '/prontuario': typeof ProntuarioRoute
   '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/profissionais': typeof ProfissionaisRoute
   '/prontuario': typeof ProntuarioRoute
   '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/mobile': typeof MobileRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
+  '/profissionais': typeof ProfissionaisRoute
   '/prontuario': typeof ProntuarioRoute
   '/sos': typeof SosRoute
   '/telemedicina': typeof TelemedicinaRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/profissionais'
     | '/prontuario'
     | '/sos'
     | '/telemedicina'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/profissionais'
     | '/prontuario'
     | '/sos'
     | '/telemedicina'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/mobile'
     | '/parcerias'
     | '/portal'
+    | '/profissionais'
     | '/prontuario'
     | '/sos'
     | '/telemedicina'
@@ -232,6 +244,7 @@ export interface RootRouteChildren {
   MobileRoute: typeof MobileRoute
   ParceriasRoute: typeof ParceriasRoute
   PortalRoute: typeof PortalRoute
+  ProfissionaisRoute: typeof ProfissionaisRoute
   ProntuarioRoute: typeof ProntuarioRoute
   SosRoute: typeof SosRoute
   TelemedicinaRoute: typeof TelemedicinaRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/prontuario'
       fullPath: '/prontuario'
       preLoaderRoute: typeof ProntuarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profissionais': {
+      id: '/profissionais'
+      path: '/profissionais'
+      fullPath: '/profissionais'
+      preLoaderRoute: typeof ProfissionaisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal': {
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   MobileRoute: MobileRoute,
   ParceriasRoute: ParceriasRoute,
   PortalRoute: PortalRoute,
+  ProfissionaisRoute: ProfissionaisRoute,
   ProntuarioRoute: ProntuarioRoute,
   SosRoute: SosRoute,
   TelemedicinaRoute: TelemedicinaRoute,
@@ -376,3 +397,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

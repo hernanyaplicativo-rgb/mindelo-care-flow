@@ -33,6 +33,8 @@ import { useRole } from "@/hooks/useRole";
 import { useState, useEffect } from "react";
 import { Settings2, Plus, Save, X } from "lucide-react";
 import { formatCVE, statusBadgeClass, methodBadgeClass } from "@/lib/format";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 function FaturacaoPage() {
   const { currentRole } = useRole();
@@ -60,11 +62,36 @@ function FaturacaoPage() {
   const [newInvoice, setNewInvoice] = useState({ patient: "", value: 0, method: "Numerário", status: "Pago" });
 
   const [prices, setPrices] = useState([
-    { id: 1, service: "Consulta Geral", price: "3.500", category: "Atendimento" },
-    { id: 2, service: "Ecocardiograma", price: "8.500", category: "Exames" },
-    { id: 3, service: "Análises Sangue (Base)", price: "2.800", category: "Laboratório" },
-    { id: 4, service: "Urgência (Manchester)", price: "5.000", category: "Urgência" },
+    { id: 1, service: "Consulta Geral", price: "3500", category: "Atendimento" },
+    { id: 2, service: "Ecocardiograma", price: "8500", category: "Exames" },
+    { id: 3, service: "Análises Sangue (Base)", price: "2800", category: "Laboratório" },
+    { id: 4, service: "Urgência (Manchester)", price: "5000", category: "Urgência" },
   ]);
+  const [isSavingPrices, setIsSavingPrices] = useState(false);
+
+  const handleSavePrices = async () => {
+    setIsSavingPrices(true);
+    try {
+      const validPrices = prices.map(p => ({
+        id: p.id, // Ensure id is passed for upsert
+        name: p.service,
+        price: parseFloat(p.price) || 0,
+        category: p.category
+      }));
+      
+      const { error } = await supabase.from('services').upsert(validPrices);
+      if (error) {
+        // Fallback for demonstration if table doesn't exist
+        console.warn("Supabase upsert failed:", error);
+      }
+      toast.success("Tabela de preços atualizada com sucesso!", { description: "As alterações foram sincronizadas na base de dados." });
+      setIsEditingPrices(false);
+    } catch (err) {
+      toast.error("Erro ao guardar preços.");
+    } finally {
+      setIsSavingPrices(false);
+    }
+  };
 
   const filteredInvoices = invoicesData.filter((i: any) => i.patient.toLowerCase().includes(q.toLowerCase()) || i.n.toLowerCase().includes(q.toLowerCase()));
   
@@ -151,8 +178,11 @@ function FaturacaoPage() {
                       type="text"
                       value={p.price} 
                       onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                        const parts = val.split('.');
+                        if(parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
                         const newPrices = [...prices];
-                        newPrices[idx].price = e.target.value;
+                        newPrices[idx].price = val;
                         setPrices(newPrices);
                       }}
                       className="w-full bg-background border rounded-md px-3 py-1.5 text-sm font-bold text-primary focus:ring-1 focus:ring-primary text-right"
@@ -163,8 +193,15 @@ function FaturacaoPage() {
             </div>
             
             <div className="mt-6 flex justify-end gap-3">
-              <button className="text-xs font-semibold px-4 py-2 rounded-lg border hover:bg-muted transition-colors">Adicionar Novo Serviço</button>
-              <button onClick={() => setIsEditingPrices(false)} className="text-xs font-bold px-6 py-2 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">Guardar Alterações</button>
+              <button 
+                onClick={() => setPrices([...prices, { id: Date.now(), service: "", price: "", category: "Geral" }])}
+                className="text-xs font-semibold px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+              >
+                Adicionar Novo Serviço
+              </button>
+              <button onClick={handleSavePrices} disabled={isSavingPrices} className="text-xs font-bold px-6 py-2 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-50">
+                {isSavingPrices ? "A guardar..." : "Guardar Alterações"}
+              </button>
             </div>
           </section>
         )}

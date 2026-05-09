@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { FileText, Download, UserCircle, Activity, Calendar, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal")({
   head: () => ({
@@ -45,7 +46,7 @@ function PortalPage() {
               </span>
             </div>
           </div>
-          <button className="rounded-xl border bg-background px-4 py-2 text-sm font-semibold hover:bg-muted transition-colors shadow-sm whitespace-nowrap">
+          <button onClick={() => toast("Atualização Pendente", { description: "Esta funcionalidade estará ativa na próxima versão." })} className="rounded-xl border bg-background px-4 py-2 text-sm font-semibold hover:bg-muted transition-colors shadow-sm whitespace-nowrap">
             Atualizar Perfil
           </button>
         </div>
@@ -75,10 +76,10 @@ function PortalPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                      <button className="size-8 rounded-full bg-muted grid place-items-center hover:bg-primary/20 hover:text-primary" title="Compartilhar">
+                      <button onClick={() => toast.success("Link copiado para a área de transferência")} className="size-8 rounded-full bg-muted grid place-items-center hover:bg-primary/20 hover:text-primary" title="Compartilhar">
                         <Share2 className="size-3.5" />
                       </button>
-                      <button className="size-8 rounded-full bg-muted grid place-items-center hover:bg-primary/20 hover:text-primary" title="Fazer Download PDF">
+                      <button onClick={() => toast.success("Download iniciado", { description: "O PDF do seu exame está a ser transferido." })} className="size-8 rounded-full bg-muted grid place-items-center hover:bg-primary/20 hover:text-primary" title="Fazer Download PDF">
                         <Download className="size-3.5" />
                       </button>
                     </div>

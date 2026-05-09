@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { CalendarDays, Clock, UserPlus, AlertCircle, CheckCircle2, User, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/escala")({
   head: () => ({
@@ -31,6 +32,25 @@ function EscalaPage() {
   const [shiftsData, setShiftsData] = useState(initialShifts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [targetShiftIndex, setTargetShiftIndex] = useState<number | null>(null);
+  const [isQuickSelectModalOpen, setIsQuickSelectModalOpen] = useState(false);
+  const [highlightMode, setHighlightMode] = useState<{dept: string, prof: string} | null>(null);
+  const [dbProfessionals, setDbProfessionals] = useState<string[]>(availableProfessionals);
+
+  useEffect(() => {
+    const fetchProf = async () => {
+      const { data } = await supabase.from('professionals').select('full_name, role').eq('status', 'active');
+      if (data && data.length > 0) {
+        setDbProfessionals(data.map(p => {
+          let prefix = "";
+          if (p.role === 'doctor') prefix = "Dr. ";
+          if (p.role === 'nurse') prefix = "Enf. ";
+          let name = p.full_name.replace(/^Dr\.?\s+/i, '').replace(/^Dra\.?\s+/i, '').replace(/^Enf\.?\s+/i, '');
+          return prefix + name;
+        }));
+      }
+    };
+    fetchProf();
+  }, []);
 
   // Calcula total dinamicamente (Base 7 do array inicial + 7 extra que supostamente estão noutras alas = 14 iniciais)
   const totalAtivos = shiftsData.reduce((acc, shift) => acc + shift.staff.length, 0) + 7;
@@ -57,6 +77,7 @@ function EscalaPage() {
       setShiftsData(updatedShifts);
     }
     setIsModalOpen(false);
+    setHighlightMode(null); // Clear highlight after allocation
   };
 
   return (
@@ -107,14 +128,16 @@ function EscalaPage() {
               <CalendarDays className="size-5 text-primary" />
               <h3 className="font-semibold text-lg">Quadro de Plantões — Hoje</h3>
             </div>
-            <button className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-md hover:opacity-90 flex items-center gap-2">
+            <button onClick={() => setIsQuickSelectModalOpen(true)} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-md hover:opacity-90 flex items-center gap-2">
               <UserPlus className="size-4" /> Alocar Profissional
             </button>
           </div>
 
           <div className="divide-y">
-            {shiftsData.map((shift, i) => (
-              <div key={i} className="p-6 flex flex-col md:flex-row gap-6 hover:bg-muted/30 transition-colors">
+            {shiftsData.map((shift, i) => {
+              const isHighlighted = highlightMode && shift.status === "Alerta";
+              return (
+              <div key={i} className={`p-6 flex flex-col md:flex-row gap-6 hover:bg-muted/30 transition-all ${isHighlighted ? 'bg-primary/5 ring-2 ring-primary ring-inset' : ''}`}>
                 <div className="md:w-1/3">
                   <div className="flex items-center gap-2 font-bold text-lg">
                     <Clock className="size-5 text-primary" /> {shift.time}
@@ -145,16 +168,23 @@ function EscalaPage() {
                     ))}
                     {shift.status === "Alerta" && (
                       <button 
-                        onClick={() => handleOpenModal(i)}
-                        className="px-3 py-2 rounded-lg border border-dashed border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors flex items-center gap-2"
+                        onClick={() => {
+                          if (highlightMode) {
+                            handleAddStaff(highlightMode.prof);
+                            setTargetShiftIndex(i); // To fulfill handleAddStaff requirement, though we should change it to use the selected prof
+                          } else {
+                            handleOpenModal(i);
+                          }
+                        }}
+                        className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${isHighlighted ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90' : 'border-dashed border-primary text-primary hover:bg-primary/5'}`}
                       >
-                        <UserPlus className="size-4" /> Preencher Vaga
+                        <UserPlus className="size-4" /> {isHighlighted ? "Confirmar Alocação" : "Preencher Vaga"}
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
@@ -171,7 +201,7 @@ function EscalaPage() {
               </button>
             </div>
             <div className="p-2">
-              {availableProfessionals.map((prof) => (
+              {dbProfessionals.map((prof) => (
                 <button
                   key={prof}
                   onClick={() => handleAddStaff(prof)}
@@ -193,6 +223,46 @@ function EscalaPage() {
           </div>
         </div>
       )}
+      {/* Quick Select Modal */}
+      {isQuickSelectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b flex items-center justify-between bg-muted/20">
+              <h3 className="font-bold text-lg">Alocar Rápido</h3>
+              <button onClick={() => setIsQuickSelectModalOpen(false)} className="p-1 rounded-md hover:bg-muted text-muted-foreground transition-colors">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="text-xs uppercase font-bold text-muted-foreground mb-1 block">Departamento</label>
+                <select className="w-full border rounded-lg px-3 py-2 bg-background">
+                  <option>Urgência 24/7</option>
+                  <option>Bloco Operatório</option>
+                  <option>Consulta Externa</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs uppercase font-bold text-muted-foreground mb-1 block">Profissional</label>
+                <select id="quickProfSelect" className="w-full border rounded-lg px-3 py-2 bg-background">
+                  {dbProfessionals.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <button 
+                onClick={() => {
+                  const prof = (document.getElementById('quickProfSelect') as HTMLSelectElement).value;
+                  setHighlightMode({ dept: 'Urgência 24/7', prof });
+                  setIsQuickSelectModalOpen(false);
+                }}
+                className="w-full py-2.5 bg-primary text-primary-foreground font-bold rounded-lg mt-2"
+              >
+                Procurar Vagas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </DashboardLayout>
   );
 }

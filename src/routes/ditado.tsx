@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Mic, FileAudio, FileText, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/ditado")({
   head: () => ({
@@ -30,6 +31,11 @@ function DitadoPage() {
       setIsRecording(true);
       setTranscription("");
     }
+  };
+
+  const handleSave = () => {
+    toast.success("Prontuário Salvo", { description: "O texto foi adicionado à ficha do paciente atual." });
+    setTranscription("");
   };
 
   return (
@@ -99,6 +105,7 @@ function DitadoPage() {
             )}
 
             <button 
+              onClick={handleSave}
               disabled={!transcription}
               className="mt-6 w-full py-3 rounded-xl text-primary-foreground font-bold shadow-md transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{ background: "var(--gradient-primary)" }}

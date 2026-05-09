@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User, Siren } from "lucide-react";
+import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User, Siren, UserCheck } from "lucide-react";
 import { useRole, Unit } from "@/hooks/useRole";
 
 type Role = 'admin' | 'doctor' | 'reception' | 'patient';
@@ -16,6 +16,7 @@ const allItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ['admin'] },
   { to: "/analytics", label: "Analytics & BI", icon: BarChart3, roles: ['admin'] },
   { to: "/escala", label: "Gestão de Escalas", icon: Users, roles: ['admin'] },
+  { to: "/profissionais", label: "Profissionais", icon: UserCheck, roles: ['admin'] },
   { to: "/farmacia", label: "Farmácia & Stock", icon: Pill, roles: ['admin', 'reception'] },
   { to: "/faturacao", label: "Faturação & Caixa", icon: Receipt, roles: ['admin', 'reception'] },
   { to: "/parcerias", label: "Parcerias", icon: Building2, roles: ['admin'] },

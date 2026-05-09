@@ -23,6 +23,7 @@ const statusMap: Record<string, { label: string; cls: string }> = {
 function FarmaciaPage() {
   const { currentRole } = useRole();
   const [q, setQ] = useState("");
+  const [filterLowStock, setFilterLowStock] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -54,6 +55,13 @@ function FarmaciaPage() {
   });
 
   const filtered = itemsWithStatus.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+  if (filterLowStock) {
+    filtered.sort((a, b) => {
+      if (a.qty < 10 && b.qty >= 10) return -1;
+      if (a.qty >= 10 && b.qty < 10) return 1;
+      return a.qty - b.qty; // sort by qty ascending when both are low or both are not low
+    });
+  }
 
   const totalValue = stockItems.reduce((sum, s) => sum + (s.qty * s.price), 0);
   const formattedValue = totalValue >= 1000000 ? `${(totalValue / 1000000).toFixed(1)}M CVE` : `${(totalValue / 1000).toFixed(1)}K CVE`;
@@ -130,7 +138,13 @@ function FarmaciaPage() {
                   className="bg-background border rounded-xl pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all"
                 />
               </div>
-              <button className="p-2 rounded-xl border bg-background hover:bg-muted transition-colors"><Filter className="size-4" /></button>
+              <button 
+                onClick={() => setFilterLowStock(!filterLowStock)} 
+                className={`p-2 rounded-xl border transition-colors ${filterLowStock ? 'bg-destructive/10 border-destructive text-destructive' : 'bg-background hover:bg-muted'}`}
+                title="Priorizar Stock Crítico (< 10)"
+              >
+                <Filter className="size-4" />
+              </button>
             </div>
           </div>
           <table className="w-full text-sm">
@@ -147,7 +161,7 @@ function FarmaciaPage() {
             </thead>
             <tbody className="divide-y">
               {filtered.map((s, idx) => (
-                <tr key={s.name} className="hover:bg-muted/30 transition-colors group">
+                <tr key={s.name} className={`hover:bg-muted/30 transition-colors group ${s.qty < 10 && filterLowStock ? 'bg-destructive/5 border-l-4 border-l-destructive' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="font-bold text-foreground">{s.name}</div>
                   </td>
@@ -188,12 +202,12 @@ function FarmaciaPage() {
               <input placeholder="Nome" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               <input placeholder="Categoria" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Quantidade" value={newItem.qty || ''} onChange={e => setNewItem({...newItem, qty: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                <input type="number" placeholder="Mínimo" value={newItem.min || ''} onChange={e => setNewItem({...newItem, min: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="text" placeholder="Quantidade" value={newItem.qty || ''} onChange={e => setNewItem({...newItem, qty: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="text" placeholder="Mínimo" value={newItem.min || ''} onChange={e => setNewItem({...newItem, min: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <input type="text" placeholder="Validade (YYYY-MM)" value={newItem.exp} onChange={e => setNewItem({...newItem, exp: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                <input type="number" placeholder="Preço (CVE)" value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <input type="text" placeholder="Preço (CVE)" value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: parseFloat(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
@@ -214,11 +228,11 @@ function FarmaciaPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Qtd Atual</label>
-                  <input type="number" value={editingItem.qty} onChange={e => setEditingItem({...editingItem, qty: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm font-bold" />
+                  <input type="text" value={editingItem.qty} onChange={e => setEditingItem({...editingItem, qty: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm font-bold" />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Mínimo Permitido</label>
-                  <input type="number" value={editingItem.min} onChange={e => setEditingItem({...editingItem, min: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <input type="text" value={editingItem.min} onChange={e => setEditingItem({...editingItem, min: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -228,7 +242,7 @@ function FarmaciaPage() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Preço Un. (CVE)</label>
-                  <input type="number" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseInt(e.target.value) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <input type="text" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseFloat(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0})} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
             </div>

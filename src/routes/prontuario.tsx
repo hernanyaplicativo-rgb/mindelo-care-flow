@@ -53,7 +53,7 @@ function ProntuarioPage() {
   });
 
   const [sel, setSel] = useState(patients[0]);
-// ...
+  // ...
   const [q, setQ] = useState("");
   const [activeTab, setActiveTab] = useState("historia");
   const [isRecording, setIsRecording] = useState(false);
@@ -94,36 +94,34 @@ function ProntuarioPage() {
         <aside className="rounded-2xl border bg-card/50 backdrop-blur-sm p-4 space-y-4 h-[calc(100vh-8rem)] flex flex-col" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="relative group">
             <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input 
-              value={q} 
-              onChange={(e) => setQ(e.target.value)} 
-              placeholder="Buscar paciente ou nº doc…" 
-              className="w-full bg-background/80 border rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" 
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar paciente ou nº doc…"
+              className="w-full bg-background/80 border rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm"
             />
           </div>
-          
+
           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
             Meus Pacientes (Hoje)
           </div>
 
           <div className="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
             {filtered.map((p) => (
-              <button 
-                key={p.id} 
-                onClick={() => setSel(p)} 
-                className={`w-full text-left rounded-xl p-3 border transition-all duration-300 relative overflow-hidden group ${
-                  sel.id === p.id 
-                    ? "border-primary/50 bg-primary/5 shadow-sm" 
+              <button
+                key={p.id}
+                onClick={() => setSel(p)}
+                className={`w-full text-left rounded-xl p-3 border transition-all duration-300 relative overflow-hidden group ${sel.id === p.id
+                    ? "border-primary/50 bg-primary/5 shadow-sm"
                     : "border-transparent hover:bg-muted/50 hover:border-border/50"
-                }`}
+                  }`}
               >
                 {sel.id === p.id && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary animate-in slide-in-from-left" />
                 )}
                 <div className="flex items-center gap-3">
-                  <div className={`size-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                    sel.id === p.id ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "bg-accent text-accent-foreground group-hover:bg-primary/10"
-                  }`}>
+                  <div className={`size-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${sel.id === p.id ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "bg-accent text-accent-foreground group-hover:bg-primary/10"
+                    }`}>
                     {p.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -142,7 +140,7 @@ function ProntuarioPage() {
 
         {/* Main Content */}
         <section className="space-y-6 flex flex-col h-[calc(100vh-8rem)] overflow-y-auto pr-2 custom-scrollbar pb-6">
-          
+
           {/* Manager Clinical Config */}
           {currentRole === 'admin' && (
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-500">
@@ -155,7 +153,7 @@ function ProntuarioPage() {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Definir limites de alerta do sistema</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setIsEditingThresholds(!isEditingThresholds)}
                 className="text-xs font-bold bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
               >
@@ -177,9 +175,9 @@ function ProntuarioPage() {
                     <I className="size-3.5 text-primary" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{l}</span>
                   </div>
-                  <input 
+                  <input
                     value={v}
-                    onChange={(e) => setThresholds({...thresholds, [k]: e.target.value})}
+                    onChange={(e) => setThresholds({ ...thresholds, [k]: e.target.value })}
                     className="w-full bg-background border rounded-lg px-3 py-1.5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
@@ -190,11 +188,11 @@ function ProntuarioPage() {
           {/* Header */}
           <div className="rounded-2xl border bg-card p-6 flex flex-col md:flex-row items-start md:items-center gap-6 relative overflow-hidden group" style={{ boxShadow: "var(--shadow-card)" }}>
             <div className="absolute right-0 top-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
-            
+
             <div className="size-20 rounded-2xl bg-gradient-to-br from-primary to-[var(--primary-glow)] flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20 shrink-0">
               {sel.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
             </div>
-            
+
             <div className="flex-1 space-y-3 z-10">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">{sel.name}</h2>
@@ -205,7 +203,7 @@ function ProntuarioPage() {
                   </span>
                 )}
               </div>
-              
+
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5"><span className="font-medium text-foreground">{sel.age}</span> anos</div>
                 <div className="flex items-center gap-1.5"><span className="text-foreground">Doc:</span> {sel.doc}</div>
@@ -249,11 +247,10 @@ function ProntuarioPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab.id 
-                      ? "border-primary text-primary" 
+                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
+                      ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-                  }`}
+                    }`}
                 >
                   <tab.icon className="size-4" />
                   {tab.label}
@@ -269,14 +266,13 @@ function ProntuarioPage() {
                     <PenTool className="size-4 text-primary" />
                     Evolução Médica
                   </h3>
-                  
-                  <button 
+
+                  <button
                     onClick={toggleRecording}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm ${
-                      isRecording 
-                        ? "bg-destructive/15 text-destructive animate-pulse ring-2 ring-destructive/30" 
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm ${isRecording
+                        ? "bg-destructive/15 text-destructive animate-pulse ring-2 ring-destructive/30"
                         : "bg-background border hover:bg-muted"
-                    }`}
+                      }`}
                   >
                     <Mic className={`size-3.5 ${isRecording ? 'text-destructive' : 'text-primary'}`} />
                     {isRecording ? "Gravando (Ditado)..." : "Ditado por Voz"}
@@ -293,7 +289,7 @@ function ProntuarioPage() {
                 </div>
 
                 <div className="flex justify-end pt-2 border-t mt-auto">
-                  <button 
+                  <button
                     onClick={handleSaveNote}
                     disabled={!clinicalNote.trim() || isSaving}
                     className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20"
@@ -316,18 +312,17 @@ function ProntuarioPage() {
                   {(historyData[sel.id] || []).map((h: any) => (
                     <li key={h.id} className="p-5 flex gap-4 hover:bg-muted/20 transition-colors group">
                       <div className="flex flex-col items-center gap-2">
-                        <div className={`size-8 rounded-full flex items-center justify-center shrink-0 border-2 border-background shadow-sm ${
-                          h.type === 'consulta' ? 'bg-blue-500/10 text-blue-500' :
-                          h.type === 'exame' ? 'bg-amber-500/10 text-amber-500' :
-                          'bg-destructive/10 text-destructive'
-                        }`}>
+                        <div className={`size-8 rounded-full flex items-center justify-center shrink-0 border-2 border-background shadow-sm ${h.type === 'consulta' ? 'bg-blue-500/10 text-blue-500' :
+                            h.type === 'exame' ? 'bg-amber-500/10 text-amber-500' :
+                              'bg-destructive/10 text-destructive'
+                          }`}>
                           {h.type === 'consulta' && <Stethoscope className="size-4" />}
                           {h.type === 'exame' && <FileText className="size-4" />}
                           {h.type === 'triagem' && <Activity className="size-4" />}
                         </div>
                         <div className="w-px h-full bg-border group-last:hidden" />
                       </div>
-                      
+
                       <div className="flex-1 pb-4">
                         <div className="flex justify-between items-start mb-1">
                           <div className="font-semibold text-sm text-foreground">{h.t}</div>
