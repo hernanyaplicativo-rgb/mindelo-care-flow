@@ -19,7 +19,9 @@ const kpis = [
   { label: "Receita mês", value: "5.8M CVE", trend: "+18%", icon: TrendingUp },
 ];
 
-const initialInvoices = [
+type Invoice = { n: string; patient: string; value: number; status: string; method: string };
+
+const initialInvoices: Invoice[] = [
   { n: "FT 2026/0412", patient: "Maria Évora", value: 3500, status: "Pago", method: "Vinti4" },
   { n: "FT 2026/0411", patient: "João Silva", value: 12800, status: "INPS", method: "Convénio" },
   { n: "FT 2026/0410", patient: "Ana Tavares", value: 5200, status: "Pago", method: "Numerário" },
@@ -44,9 +46,9 @@ function FaturacaoPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState<any>(null);
   
-  const [invoicesData, setInvoicesData] = useState(() => {
+  const [invoicesData, setInvoicesData] = useState<Invoice[]>(() => {
     const saved = localStorage.getItem('invoicesData');
-    return saved ? JSON.parse(saved) : initialInvoices;
+    return saved ? (JSON.parse(saved) as Invoice[]) : initialInvoices;
   });
 
   useEffect(() => {
