@@ -261,16 +261,16 @@ function Index() {
         </section>
 
         {/* Stats */}
-        <section className={`grid grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
+        <section className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
           {stats.map(({ label, value, trend, icon: Icon, to }) => (
-            <Link key={label} to={to} className="group relative rounded-xl bg-card border border-border/60 p-5 hover:border-primary/50 hover:-translate-y-1 hover:shadow-lg transition-all" style={{ boxShadow: "var(--shadow-card)", display: "block" }}>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">{label}</span>
+            <Link key={label} to={to} className="group relative rounded-xl bg-card border border-border/60 p-5 hover:border-primary/50 hover:-translate-y-1 hover:shadow-lg transition-all min-w-0" style={{ boxShadow: "var(--shadow-card)", display: "block" }}>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold leading-4 break-words">{label}</span>
                 <div className="size-8 rounded-lg bg-primary/10 grid place-items-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <Icon className="size-4" />
                 </div>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
+              <div className="mt-3 flex flex-wrap items-baseline gap-2">
                 {loading ? (
                   <div className="h-8 w-16 bg-muted rounded animate-pulse" />
                 ) : (
