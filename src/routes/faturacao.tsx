@@ -227,10 +227,10 @@ function FaturacaoPage() {
                 <tr key={i.n} className="hover:bg-muted/30 cursor-pointer group" onClick={() => setDetailsModalOpen(i)}>
                   <td className="px-5 py-3 font-mono text-xs text-primary group-hover:underline">{i.n}</td>
                   <td className="px-5 py-3 font-medium">{i.patient}</td>
-                  <td className="px-5 py-3 text-muted-foreground text-xs">{i.method}</td>
-                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{i.value.toLocaleString('pt-PT')} CVE</td>
+                  <td className="px-5 py-3 text-xs"><span className={methodBadgeClass(i.method)}>{i.method}</span></td>
+                  <td className="px-5 py-3 text-right font-semibold tabular-nums">{formatCVE(i.value)}</td>
                   <td className="px-5 py-3 text-right">
-                    <span className={`inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[i.status]}`}>{i.status}</span>
+                    <span className={statusBadgeClass(i.status)}>{i.status}</span>
                   </td>
                 </tr>
               ))}
@@ -284,13 +284,13 @@ function FaturacaoPage() {
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Paciente</span> <span className="font-semibold">{detailsModalOpen.patient}</span></div>
-              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Método</span> <span>{detailsModalOpen.method}</span></div>
-              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Estado</span> <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${statusStyle[detailsModalOpen.status]}`}>{detailsModalOpen.status}</span></div>
-              <div className="flex justify-between py-3 text-lg"><span className="font-bold text-muted-foreground">Total</span> <span className="font-bold">{detailsModalOpen.value.toLocaleString('pt-PT')} CVE</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Método</span> <span className={methodBadgeClass(detailsModalOpen.method)}>{detailsModalOpen.method}</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-muted-foreground">Estado</span> <span className={statusBadgeClass(detailsModalOpen.status)}>{detailsModalOpen.status}</span></div>
+              <div className="flex justify-between py-3 text-lg"><span className="font-bold text-muted-foreground">Total</span> <span className="font-bold">{formatCVE(detailsModalOpen.value)}</span></div>
             </div>
             <div className="mt-6">
-              <button onClick={() => setDetailsModalOpen(null)} className="w-full py-2.5 rounded-xl border bg-background text-sm font-bold shadow-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
-                <Download className="size-4" /> Exportar PDF
+              <button onClick={() => exportInvoiceCSV(detailsModalOpen)} className="w-full py-2.5 rounded-xl border bg-background text-sm font-bold shadow-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
+                <Download className="size-4" /> Exportar Recibo (CSV)
               </button>
             </div>
           </div>
