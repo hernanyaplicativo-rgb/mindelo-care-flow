@@ -191,7 +191,7 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
             )}
           </nav>
         </div>
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className="flex-1 min-w-0 p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );
