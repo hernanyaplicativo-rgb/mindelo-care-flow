@@ -41,14 +41,21 @@ function FaturacaoPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState<any>(null);
   
-  const [invoicesData, setInvoicesData] = useState<Invoice[]>(() => {
-    const saved = localStorage.getItem('invoicesData');
-    return saved ? (JSON.parse(saved) as Invoice[]) : initialInvoices;
-  });
+  const [invoicesData, setInvoicesData] = useState<Invoice[]>(initialInvoices);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('invoicesData', JSON.stringify(invoicesData));
-  }, [invoicesData]);
+    try {
+      const saved = typeof window !== "undefined" ? window.localStorage.getItem("invoicesData") : null;
+      if (saved) setInvoicesData(JSON.parse(saved) as Invoice[]);
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try { window.localStorage.setItem("invoicesData", JSON.stringify(invoicesData)); } catch {}
+  }, [invoicesData, hydrated]);
 
   const [newInvoice, setNewInvoice] = useState({ patient: "", value: 0, method: "Numerário", status: "Pago" });
 
@@ -70,6 +77,21 @@ function FaturacaoPage() {
     setInvoicesData([{ ...newInvoice, n }, ...invoicesData]);
     setNewInvoice({ patient: "", value: 0, method: "Numerário", status: "Pago" });
     setIsAddModalOpen(false);
+  };
+
+  const exportInvoiceCSV = (inv: Invoice) => {
+    const rows = [
+      ["Numero", "Paciente", "Metodo", "Estado", "Valor (CVE)"],
+      [inv.n, inv.patient, inv.method, inv.status, String(inv.value)],
+    ];
+    const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${inv.n.replace(/[^\w]+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
