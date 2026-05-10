@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { Link } from "@tanstack/react-router";
-import { Activity, Calendar, Building2, Users, TrendingUp, Bed, Scissors, Loader2 } from "lucide-react";
+import { 
+  Activity, Calendar, Building2, Users, TrendingUp, Bed, Scissors, 
+  Loader2, UserCheck, ShieldCheck, Stethoscope, Clock, FileText, 
+  Printer, User, ClipboardList, CheckCircle2, Siren, UserPlus
+} from "lucide-react";
 import clinicImg from "@/assets/medicentro-clinic.jpg";
 import logoImg from "@/assets/medicentro-logo.jpg";
 import { useRole } from "@/hooks/useRole";
@@ -10,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -35,381 +40,325 @@ const priorityStyle: Record<string, string> = {
 function Index() {
   const { currentUnit, currentRole } = useRole();
   const [loading, setLoading] = useState(true);
-  const [timeNow, setTimeNow] = useState(new Date());
   const [queue, setQueue] = useState<any[]>([]);
-  const [alertedIds, setAlertedIds] = useState<Set<string>>(new Set());
+  const [logs, setLogs] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const isFirstLoadRef = useRef(true);
-  const [unitStatus, setUnitStatus] = useState<any>({
-    sede: "Aberto",
-    monte_sossego: "Operante",
-    bloco: "Livre"
-  });
+  
   const [statsData, setStatsData] = useState({
     triagensHoje: 0,
     triagensGrowth: "+0%",
     ocupacao: "0/0",
     ocupacaoPerc: "0%",
     cirurgiasHoje: 0,
-    cirurgiasGrowth: "+0%",
     consultasHoje: 0,
-    consultasGrowth: "+0%"
   });
 
   const isSede = currentUnit.includes("Madeiralzinho");
   const selectedUnitId = isSede ? 1 : 2;
 
-  // Tick for "time ago" logic
   useEffect(() => {
-    const interval = setInterval(() => setTimeNow(new Date()), 60000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchDashboardData();
+  }, [currentRole, selectedUnitId]);
 
-  const validateSegurosAPI = async () => {
+  const fetchDashboardData = async () => {
+    console.log(`[App Debug] Carregando Dashboard (Perfil: ${currentRole}, Unidade: ${currentUnit})...`);
+    setLoading(true);
     try {
-      // Simulate API integration validation for INPS / Garantia
-      setLoading(true);
-      const { data, error } = await supabase.from('integracoes_seguros').select('status').eq('nome', 'INPS').single();
-      if (error) throw error;
-      alert(`API INPS/Garantia Status: ${data?.status === 'active' ? 'Conectado com sucesso' : 'Falha na conexão'}`);
-    } catch (e) {
-      alert("Simulação de Validação: As APIs de Seguros estão ativas e a responder.");
+      if (currentRole === 'admin') {
+        console.log("[App Debug] Buscando logs de auditoria...");
+        const { data, error } = await supabase
+          .from('documentos_emitidos')
+          .select('*, pacientes(nome_completo)')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (error) throw error;
+        setLogs(data || []);
+      }
+
+      console.log("[App Debug] Buscando fila de triagem...");
+      const { data: queueData, error: queueError } = await supabase
+        .from('triagens')
+        .select('*')
+        .eq('unidade_id', selectedUnitId)
+        .eq('status', 'aguardando');
+      
+      if (queueError) throw queueError;
+      setQueue(queueData || []);
+
+      // Mock stats for demo
+      setStatsData({
+        triagensHoje: (queueData?.length || 0) + 14,
+        triagensGrowth: "+12%",
+        ocupacao: isSede ? "12/14" : "2/4",
+        ocupacaoPerc: "85%",
+        cirurgiasHoje: 3,
+        consultasHoje: 42,
+      });
+
+    } catch (error: any) {
+      console.error("[App Debug] Erro ao carregar Dashboard:", error);
+      
+      let msg = error.message || 'Falha desconhecida';
+      if (error.code === '42501' || error.message?.includes('RLS')) {
+        msg = "Precisa de fazer login primeiro. Permissão negada pelas regras de segurança (RLS).";
+      }
+      toast.error(`Erro de Carregamento: ${msg}`);
     } finally {
       setLoading(false);
     }
   };
 
-    const fetchDashboardData = async () => {
-    setLoading(true);
+  // ---------------------------------------------------------
+  // UI: RECEÇÃO
+  // ---------------------------------------------------------
+  const ReceptionUI = () => (
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[300px] flex items-end ring-1 ring-border/50 shadow-xl">
+        <img src={clinicImg} alt="Medicentro" className="absolute inset-0 size-full object-cover scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-transparent" />
+        <div className="relative z-10 w-full flex flex-col md:flex-row justify-between items-end gap-6">
+          <div className="max-w-xl">
+            <h2 className="text-4xl font-bold tracking-tight leading-none">Consola de Receção</h2>
+            <p className="mt-4 text-primary-foreground/80">Gestão de fluxo de utentes e emissão de documentos oficiais na {currentUnit}.</p>
+          </div>
+          <div className="flex gap-3">
+            <Link to="/pacientes" className="flex items-center gap-2 px-6 py-3 bg-success text-success-foreground rounded-xl font-bold shadow-lg shadow-success/20 hover:scale-105 transition-all">
+              <UserPlus className="size-5" /> Novo Paciente
+            </Link>
+            <Link to="/documentos" className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-all">
+              <FileText className="size-5" /> Emitir PDF
+            </Link>
+          </div>
+        </div>
+      </section>
 
-    // Verify User Role for RLS / Financial / Occupancy Data
-    const { data: { user } } = await supabase.auth.getUser();
-    const isManager = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'gerente' || currentRole === 'admin';
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-card border rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-4 border-b bg-muted/20 flex items-center justify-between">
+              <h3 className="font-bold text-sm">Fila de Triagem em Tempo Real</h3>
+              <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-success">
+                <span className="size-2 rounded-full bg-success animate-pulse" /> Live
+              </span>
+            </div>
+            <ul className="divide-y max-h-[400px] overflow-y-auto">
+              {queue.map(q => (
+                <li key={q.id} className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-all">
+                  <div className="size-10 rounded-xl bg-primary/10 grid place-items-center text-primary font-bold">{q.paciente_nome?.[0]}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm">{q.paciente_nome}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${priorityStyle[q.prioridade] || priorityStyle['Normal']}`}>
+                        {q.prioridade?.split(' ')[0]}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{q.sintoma}</p>
+                  </div>
+                  <div className="text-right text-[10px] text-muted-foreground">
+                    <Clock className="size-3 inline mr-1" /> {formatDistanceToNow(new Date(q.created_at), { addSuffix: true, locale: pt })}
+                  </div>
+                </li>
+              ))}
+              {queue.length === 0 && <li className="p-10 text-center text-muted-foreground text-sm">Fila vazia no momento.</li>}
+            </ul>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 text-center shadow-inner">
+            <TrendingUp className="size-10 text-primary mx-auto mb-4" />
+            <h4 className="font-bold text-lg">{statsData.triagensHoje} Triagens</h4>
+            <p className="text-sm text-muted-foreground">Realizadas hoje nesta unidade.</p>
+          </div>
+          <div className="bg-card border rounded-2xl p-6">
+            <h4 className="font-bold text-sm mb-4">Acesso Rápido</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/agendamentos" className="p-3 bg-muted/50 rounded-xl text-center hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
+                <Calendar className="size-5 mx-auto mb-1 text-primary" />
+                <span className="text-[10px] font-bold uppercase">Agenda</span>
+              </Link>
+              <Link to="/pacientes" className="p-3 bg-muted/50 rounded-xl text-center hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
+                <Users className="size-5 mx-auto mb-1 text-primary" />
+                <span className="text-[10px] font-bold uppercase">Utentes</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-    // Dates for Growth Calculation
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayISO = today.toISOString();
-    
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayISO = yesterday.toISOString();
+  // ---------------------------------------------------------
+  // UI: MÉDICO
+  // ---------------------------------------------------------
+  const DoctorUI = () => (
+    <div className="space-y-6">
+      <div className="grid lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-card border rounded-2xl p-5 shadow-sm">
+            <h3 className="font-bold text-sm flex items-center gap-2 mb-4"><Users className="size-4 text-primary" /> Fila de Espera</h3>
+            <div className="space-y-2">
+              {queue.map(q => (
+                <div key={q.id} className="p-3 border rounded-xl bg-muted/20 hover:border-primary/50 cursor-pointer transition-all border-l-4 border-l-primary/50">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-bold truncate">{q.paciente_nome}</span>
+                    <span className={`text-[8px] px-1.5 rounded-full font-bold ${priorityStyle[q.prioridade] || priorityStyle['Normal']}`}>
+                      {q.prioridade?.split(' ')[0]}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">Aguardando há {formatDistanceToNow(new Date(q.created_at), { locale: pt })}</span>
+                </div>
+              ))}
+              {queue.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nenhum paciente aguardando.</p>}
+            </div>
+          </div>
+        </div>
+        <div className="lg:col-span-3 space-y-6">
+          <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
+            <div className="relative z-10">
+              <h2 className="text-3xl font-black mb-2">Bem-vindo, Dr. Anderson</h2>
+              <p className="text-white/70">O seu próximo paciente está pronto para a triagem Manchester.</p>
+              <button className="mt-8 px-8 py-4 bg-white text-primary rounded-2xl font-black text-lg shadow-xl hover:scale-105 active:scale-95 transition-all">
+                Chamar Próximo Utente
+              </button>
+            </div>
+            <Stethoscope className="absolute -right-10 -bottom-10 size-64 text-white/10 rotate-12" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-card border rounded-2xl p-6 shadow-sm flex items-center gap-4 hover:border-primary/50 transition-all cursor-pointer">
+              <div className="size-12 rounded-2xl bg-primary/10 grid place-items-center text-primary"><Activity className="size-6" /></div>
+              <div>
+                <h4 className="font-bold text-sm">Consultório Virtual</h4>
+                <p className="text-xs text-muted-foreground">Aceder a prontuários e notas de voz.</p>
+              </div>
+            </div>
+            <div className="bg-card border rounded-2xl p-6 shadow-sm flex items-center gap-4 hover:border-success/50 transition-all cursor-pointer">
+              <div className="size-12 rounded-2xl bg-success/10 grid place-items-center text-success"><CheckCircle2 className="size-6" /></div>
+              <div>
+                <h4 className="font-bold text-sm">Altas Realizadas</h4>
+                <p className="text-xs text-muted-foreground">8 pacientes atendidos hoje com sucesso.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-    const calculateGrowth = (todayCount: number, yesterdayCount: number) => {
-      if (yesterdayCount === 0) return todayCount > 0 ? "+100%" : "0%";
-      const diff = ((todayCount - yesterdayCount) / yesterdayCount) * 100;
-      return `${diff > 0 ? '+' : ''}${diff.toFixed(0)}%`;
-    };
+  // ---------------------------------------------------------
+  // UI: GERENTE / ADMIN
+  // ---------------------------------------------------------
+  const AdminUI = () => (
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-4 gap-4">
+        <div className="bg-card border rounded-2xl p-5 shadow-sm border-l-4 border-l-primary">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Faturação Hoje</p>
+          <p className="text-2xl font-black mt-1">452.000 CVE</p>
+        </div>
+        <div className="bg-card border rounded-2xl p-5 shadow-sm border-l-4 border-l-success">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Ocupação Suítes</p>
+          <p className="text-2xl font-black mt-1">{statsData.ocupacao}</p>
+        </div>
+        <div className="bg-card border rounded-2xl p-5 shadow-sm border-l-4 border-l-amber-500">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Tempo Médio Espera</p>
+          <p className="text-2xl font-black mt-1">18 min</p>
+        </div>
+        <div className="bg-card border rounded-2xl p-5 shadow-sm border-l-4 border-l-destructive">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Críticos Atuais</p>
+          <p className="text-2xl font-black mt-1">2</p>
+        </div>
+      </div>
 
-    // 1. Metric Queries
-    const [
-      { count: triagensToday },
-      { count: triagensYesterday },
-      { count: consultasToday },
-      { count: consultasYesterday },
-      { count: cirurgiasToday },
-      { count: cirurgiasYesterday },
-      { data: suitesData },
-      { data: configUnidadesData }
-    ] = await Promise.all([
-      supabase.from('triagens').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', todayISO),
-      supabase.from('triagens').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', yesterdayISO).lt('created_at', todayISO),
-      supabase.from('consultas').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', todayISO),
-      supabase.from('consultas').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', yesterdayISO).lt('created_at', todayISO),
-      supabase.from('agendamentos_cirurgicos').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', todayISO),
-      supabase.from('agendamentos_cirurgicos').select('*', { count: 'exact', head: true }).eq('unidade_id', selectedUnitId).gte('created_at', yesterdayISO).lt('created_at', todayISO),
-      supabase.from('suites').select('status').eq('unidade_id', selectedUnitId),
-      supabase.from('config_unidades').select('*')
-    ]);
+      <div className="bg-card border rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-4 border-b bg-muted/20 flex items-center justify-between">
+          <h3 className="font-bold text-sm flex items-center gap-2"><ShieldCheck className="size-4 text-primary" /> Dashboard de Auditoria (Logs de Emissão)</h3>
+          <Link to="/documentos" className="text-xs font-bold text-primary hover:underline">Ver Histórico Completo →</Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <thead className="bg-muted/10 border-b text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+              <tr>
+                <th className="px-6 py-4">Data/Hora</th>
+                <th className="px-6 py-4">Utente</th>
+                <th className="px-6 py-4">Documento</th>
+                <th className="px-6 py-4">Responsável</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y text-sm">
+              {logs.map(log => (
+                <tr key={log.id} className="hover:bg-muted/5 transition-colors">
+                  <td className="px-6 py-4 text-muted-foreground">{new Date(log.created_at).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="px-6 py-4 font-bold">{log.pacientes?.nome_completo || '—'}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">{log.tipo_documento}</span>
+                  </td>
+                  <td className="px-6 py-4 italic text-muted-foreground">{log.emitido_por}</td>
+                </tr>
+              ))}
+              {logs.length === 0 && <tr><td colSpan={4} className="p-10 text-center text-muted-foreground">Nenhum log registado.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 
-    // Ocupacao suites logic
-    const totalSuites = suitesData?.length || (isSede ? 14 : 4);
-    const occupiedSuites = suitesData?.filter(s => s.status === 'ocupado').length || (isSede ? 12 : 2);
-    const ocupacaoPerc = totalSuites === 0 ? "0%" : `${Math.round((occupiedSuites / totalSuites) * 100)}%`;
+  // ---------------------------------------------------------
+  // UI: PACIENTE
+  // ---------------------------------------------------------
+  const PatientUI = () => (
+    <div className="max-w-xl mx-auto py-12 space-y-8">
+      <div className="text-center space-y-2">
+        <div className="size-20 rounded-3xl bg-primary text-white grid place-items-center mx-auto shadow-2xl mb-6">
+          <UserCheck className="size-10" />
+        </div>
+        <h2 className="text-3xl font-black">Bem-vindo à Medicentro</h2>
+        <p className="text-muted-foreground">Faça o seu check-in rápido para triagem prioritária.</p>
+      </div>
+      
+      <div className="bg-card border rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-widest">Nome Completo</label>
+          <input className="w-full px-5 py-4 bg-muted/50 border rounded-2xl text-lg font-medium outline-none focus:ring-4 ring-primary/10 transition-all" placeholder="Ex: Hernany Monteiro" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-widest">NIF ou Cartão SNS</label>
+          <input className="w-full px-5 py-4 bg-muted/50 border rounded-2xl text-lg font-medium outline-none focus:ring-4 ring-primary/10 transition-all" placeholder="000 000 000" />
+        </div>
+        <button className="w-full py-5 bg-primary text-primary-foreground rounded-2xl font-black text-xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+          Confirmar Presença
+        </button>
+      </div>
 
-    if (configUnidadesData) {
-      const sedeStatus = configUnidadesData.find(u => u.nome.includes('Sede'))?.status || "Aberto";
-      const msStatus = configUnidadesData.find(u => u.nome.includes('Monte Sossego'))?.status || "Operante";
-      const blocoStatus = configUnidadesData.find(u => u.nome.includes('Bloco'))?.status || "1 Cirurgia";
-      setUnitStatus({ sede: sedeStatus, monte_sossego: msStatus, bloco: blocoStatus });
-    }
-
-    // 2. Occupancy logic: Grouping by hour of the current day
-    // This logic prepares the data for a bar chart (e.g., Recharts)
-    let occupancyChartData: any[] = [];
-    if (isManager) {
-      const { data: ocupacaoData } = await supabase
-        .from('atendimentos')
-        .select('created_at')
-        .eq('unidade_id', selectedUnitId)
-        .gte('created_at', todayISO);
-
-      if (ocupacaoData) {
-        // Initialize 24 hours
-        const hourlyCounts = Array(24).fill(0);
-        ocupacaoData.forEach((item: any) => {
-          const hour = new Date(item.created_at).getHours();
-          hourlyCounts[hour]++;
-        });
-        
-        occupancyChartData = hourlyCounts.map((count, hour) => ({
-          hora: `${hour}:00`,
-          atendimentos: count
-        }));
-      }
-    }
-    
-    setStatsData({
-      triagensHoje: triagensToday || 0,
-      triagensGrowth: calculateGrowth(triagensToday || 0, triagensYesterday || 0),
-      ocupacao: `${occupiedSuites}/${totalSuites}`,
-      ocupacaoPerc: ocupacaoPerc,
-      cirurgiasHoje: cirurgiasToday || 0,
-      cirurgiasGrowth: calculateGrowth(cirurgiasToday || 0, cirurgiasYesterday || 0),
-      consultasHoje: consultasToday || 0,
-      consultasGrowth: calculateGrowth(consultasToday || 0, consultasYesterday || 0)
-    });
-
-    // 3. Live Triage Queue
-    const { data: queueData } = await supabase
-      .from('triagens')
-      .select('*')
-      .eq('unidade_id', selectedUnitId)
-      .eq('status', 'aguardando');
-
-    if (queueData) {
-      const priorityWeight: Record<string, number> = {
-        'Vermelho (Emergência)': 5,
-        'Laranja (Muito Urgente)': 4,
-        'Amarelo (Urgente)': 3,
-        'Verde (Pouco Urgente)': 2,
-        'Azul (Não Urgente)': 1,
-        'Vermelho': 5,
-        'Laranja': 4,
-        'Amarelo': 3,
-        'Verde': 2,
-        'Azul': 1
-      };
-
-      const sorted = queueData.sort((a, b) => {
-        const pA = priorityWeight[a.prioridade] || 0;
-        const pB = priorityWeight[b.prioridade] || 0;
-        if (pA !== pB) return pB - pA; // Priority first
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Wait time second
-      });
-      setQueue(sorted);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-
-    const channel = supabase
-      .channel(`dashboard_unidade_${selectedUnitId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'triagens' }, (payload: any) => {
-        const row = payload.new;
-        const priority: string = row?.prioridade || "";
-        const isCritical = priority.startsWith("Vermelho") || priority.startsWith("Laranja");
-        if (isCritical && row?.id) {
-          // Play alert sound
-          try { audioRef.current?.play().catch(() => {}); } catch {}
-          setAlertedIds(prev => {
-            const next = new Set(prev);
-            next.add(String(row.id));
-            return next;
-          });
-          // Auto-clear glow after 12s
-          setTimeout(() => {
-            setAlertedIds(prev => {
-              const next = new Set(prev);
-              next.delete(String(row.id));
-              return next;
-            });
-          }, 12000);
-          toast.error(`🚨 ${priority.split(" ")[0]} — ${row.paciente_nome || row.nome || "Paciente"}`, {
-            description: `Queixa: ${row.sintoma || row.queixa || "—"} · Encaminhar imediatamente.`,
-            duration: 10000,
-          });
-        }
-        fetchDashboardData();
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'triagens', filter: `unidade_id=eq.${selectedUnitId}` }, () => {
-        fetchDashboardData();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedUnitId]);
-
-  const stats = isSede ? [
-    { label: "Triagens Hoje", value: statsData.triagensHoje, trend: statsData.triagensGrowth, icon: Activity, to: "/triagem" },
-    { label: "Ocupação (Suítes)", value: statsData.ocupacao, trend: statsData.ocupacaoPerc, icon: Bed, to: "/analytics" },
-    { label: "Cirurgias (Laparoscopia)", value: statsData.cirurgiasHoje, trend: statsData.cirurgiasGrowth, icon: Scissors, to: "/agendamentos" },
-    { label: "Consultas Ambulatório", value: statsData.consultasHoje, trend: statsData.consultasGrowth, icon: Calendar, to: "/agendamentos" },
-  ] : [
-    { label: "Triagens Locais", value: statsData.triagensHoje, trend: statsData.triagensGrowth, icon: Activity, to: "/triagem" },
-    { label: "Salas de Observação", value: statsData.ocupacao, trend: statsData.ocupacaoPerc, icon: Bed, to: "/analytics" },
-    { label: "Pequenas Cirurgias", value: statsData.cirurgiasHoje, trend: statsData.cirurgiasGrowth, icon: Scissors, to: "/agendamentos" },
-    { label: "Consultas Especialidade", value: statsData.consultasHoje, trend: statsData.consultasGrowth, icon: Calendar, to: "/agendamentos" },
-  ];
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-blue-500/10 p-6 rounded-2xl border border-blue-500/20 text-center hover:bg-blue-500/20 transition-all cursor-pointer">
+          <Siren className="size-8 text-blue-500 mx-auto mb-2" />
+          <p className="text-[10px] font-bold uppercase text-blue-600 tracking-widest">Emergência</p>
+        </div>
+        <div className="bg-emerald-500/10 p-6 rounded-2xl border border-emerald-500/20 text-center hover:bg-emerald-500/20 transition-all cursor-pointer">
+          <ClipboardList className="size-8 text-emerald-500 mx-auto mb-2" />
+          <p className="text-[10px] font-bold uppercase text-emerald-600 tracking-widest">Minha Fila</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <DashboardLayout title="Recepção Medicentro" subtitle={currentUnit}>
-      <div className="space-y-6">
-        {/* Alert audio (data URI WAV beep) */}
-        <audio ref={audioRef} preload="auto" src="data:audio/wav;base64,UklGRoQGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YWAGAAAAAA8YHihEMUM6Wj9hSWVRZllRYUNiOl00RShEHikPGAD/8eji2MfMt8mqx6DPm9icUKBKsEbAUM5g3GjsdPqA/IT4iPaO9JT0mvKi8qzysvK68b71xPnK+876z/3AAcQGwgvECsAJxAnECcQJxAnECcQJxAnECcQJxAjA///z/PD46/Tw7vPp9ufx5e/k7uPt5ezm6+ru6/Hu8/D08fjz/PT/9wH7BPwG/wkCDAUOCBELFA4XESoUOhdJG1geZyJzJYIomCusLrkx2DPpNvU5/Tz/QABEAEUARgBHAEYARABCAD8APAA4ADQALwAqACUAIQAdABoAFwAUABAADAAJAAcABAAAAP/+/Pz6+vj4+Pf3+Pj5+vz9/wADBgcKDxIVGBwgIyYpLDA0NztAREhMUFRYXGBkaG10eHyAhIiMkJSYnaCkqKytsLW3uby/wsTHycvOz9HT1NbY2dvc3uHj5OXn6OnrGAAA" />
-
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[340px] flex items-end ring-1 ring-border/50" style={{ boxShadow: "var(--shadow-elegant)" }}>
-          <img src={clinicImg} alt="Clínica Privada Medicentro, Mindelo" className="absolute inset-0 size-full object-cover scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[oklch(0.22_0.02_240/0.88)] via-primary/55 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,transparent_0%,oklch(0.22_0.02_240/0.4)_100%)]" />
-          <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1 text-[11px] font-medium backdrop-blur-md border border-primary-foreground/20">
-              <img src={logoImg} alt="Medicentro 20 anos" className="size-4 rounded-full object-cover" />
-              <span>Medicentro · 20 anos a cuidar de si</span>
-            </div>
-            <h2 className="mt-4 text-3xl lg:text-5xl font-bold tracking-tight leading-[1.05]">
-              {isSede ? "Clínica Privada" : "Unidade Descentralizada"}<br/>
-              <span className="bg-gradient-to-r from-primary-foreground to-primary-foreground/60 bg-clip-text text-transparent">
-                {isSede ? "Medicentro Mindelo" : "Monte Sossego"}
-              </span>
-            </h2>
-            <p className="mt-3 text-primary-foreground/85 text-sm lg:text-base max-w-xl">
-              {isSede 
-                ? "Gestão centralizada da Clínica Sede (Madeiralzinho) — ambulatório, diagnóstico, cirurgia e urgência."
-                : "Gestão da Unidade Monte Sossego — atendimento de proximidade, análises e especialidades locais."}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/triagem" className="inline-flex items-center gap-2 rounded-lg bg-primary-foreground text-primary px-4 py-2.5 text-sm font-semibold hover:translate-y-[-1px] hover:shadow-lg transition-all">
-                <Activity className="size-4" /> Triagem Manchester
-              </Link>
-              <Link to="/agendamentos" className="inline-flex items-center gap-2 rounded-lg bg-primary-foreground/10 backdrop-blur-md text-primary-foreground px-4 py-2.5 text-sm font-semibold border border-primary-foreground/25 hover:bg-primary-foreground/20 transition-colors">
-                <Calendar className="size-4" /> Novo agendamento
-              </Link>
-            </div>
+    <DashboardLayout title={currentRole === 'patient' ? "Quiosque Digital" : "Painel Central"} subtitle={currentUnit}>
+      {loading ? (
+        <div className="h-[60vh] grid place-items-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="size-10 animate-spin text-primary" />
+            <p className="text-sm font-bold text-muted-foreground animate-pulse uppercase tracking-widest">Sincronizando Dados...</p>
           </div>
-        </section>
-
-        {/* Stats */}
-        <section className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-          {stats.map(({ label, value, trend, icon: Icon, to }) => (
-            <Link key={label} to={to} className="group relative rounded-xl bg-card border border-border/60 p-5 hover:border-primary/50 hover:-translate-y-1 hover:shadow-lg transition-all min-w-0" style={{ boxShadow: "var(--shadow-card)", display: "block" }}>
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold leading-4 break-words">{label}</span>
-                <div className="size-8 rounded-lg bg-primary/10 grid place-items-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Icon className="size-4" />
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap items-baseline gap-2">
-                {loading ? (
-                  <div className="h-8 w-16 bg-muted rounded animate-pulse" />
-                ) : (
-                  <>
-                    <span className="text-[28px] font-bold tracking-tight tabular-nums">{value}</span>
-                    <span className="inline-flex items-center text-[11px] text-success font-semibold gap-0.5 bg-success/10 px-1.5 py-0.5 rounded">
-                      <TrendingUp className="size-3" /> {trend}
-                    </span>
-                  </>
-                )}
-              </div>
-            </Link>
-          ))}
-        </section>
-
-        {/* Queue + Side panel */}
-        <section className={`grid lg:grid-cols-3 gap-6 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-          <div className="lg:col-span-2 rounded-xl bg-card border" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div className="px-5 py-4 border-b flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold">Fila de Triagem ({currentUnit})</h3>
-                <p className="text-xs text-muted-foreground">Pacientes aguardando chamada na unidade local</p>
-              </div>
-              <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
-                {loading ? <Loader2 className="size-3 animate-spin" /> : <span className="size-2 rounded-full bg-success animate-pulse" />} 
-                {loading ? 'A sincronizar...' : 'Ao vivo'}
-              </span>
-            </div>
-            {loading ? (
-              <div className="p-8 flex justify-center"><Loader2 className="size-8 animate-spin text-muted-foreground/30" /></div>
-            ) : (
-              <ul className="divide-y">
-                {queue.map((q) => {
-                  const timeAgo = formatDistanceToNow(new Date(q.created_at || new Date()), { addSuffix: true, locale: pt });
-                  const priorityClass = priorityStyle[q.prioridade] || priorityStyle['Normal'];
-                  const isAlerted = alertedIds.has(String(q.id));
-                  const isCritical = (q.prioridade || "").startsWith("Vermelho") || (q.prioridade || "").startsWith("Laranja");
-
-                  return (
-                    <li key={q.id} className={`px-5 py-4 flex items-center gap-4 transition-all duration-500 ${isAlerted ? 'bg-destructive/10 ring-2 ring-destructive animate-pulse' : isCritical ? 'bg-destructive/5' : 'hover:bg-muted/40'}`}>
-                      <div className="size-10 rounded-full bg-accent grid place-items-center text-accent-foreground font-semibold text-sm">
-                        {(q.paciente_nome || q.name || "N").split(" ").map((n: string) => n[0]).join("").slice(0,2)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{q.paciente_nome || q.name}</span>
-                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap ${priorityClass}`}>
-                            {q.prioridade?.split(' ')[0] || q.prioridade}
-                          </span>
-                        </div>
-                        <div className="text-xs text-muted-foreground truncate">{q.seguro ? q.seguro + ' · ' : ''}{q.sintoma}</div>
-                      </div>
-                      <div className="hidden sm:block text-right">
-                        <div className="text-sm font-medium">{q.especialidade || 'Clínica Geral'}</div>
-                        <div className="text-xs text-muted-foreground">{timeAgo}</div>
-                      </div>
-                    </li>
-                  );
-                })}
-                {queue.length === 0 && (
-                  <li className="px-5 py-8 text-center text-muted-foreground text-sm">Sem pacientes na fila de espera.</li>
-                )}
-              </ul>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-xl bg-card border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-              <div className="flex items-start gap-3">
-                <div className="size-10 rounded-lg bg-accent grid place-items-center">
-                  <Building2 className="size-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm">Status das Unidades</h4>
-                  <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
-                    <li className="flex justify-between">
-                      <span className={isSede ? 'font-bold text-foreground' : ''}>Clínica Sede · Madeiralzinho</span>
-                      <span className="text-success font-medium">{unitStatus.sede}</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span className={!isSede ? 'font-bold text-foreground' : ''}>Unidade Monte Sossego</span>
-                      <span className="text-success font-medium">{unitStatus.monte_sossego}</span>
-                    </li>
-                    <li className="flex justify-between opacity-50">
-                      <span>Bloco Operatório</span>
-                      <span className="text-warning font-medium">{unitStatus.bloco}</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            <div className="rounded-xl border p-5 bg-gradient-to-br from-accent to-card cursor-pointer hover:border-primary/50 transition-colors" style={{ boxShadow: "var(--shadow-card)" }} onClick={validateSegurosAPI}>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary font-semibold">
-                <Users className="size-4" /> Parcerias e Seguros
-              </div>
-              <h4 className="mt-2 font-semibold">Validação Instantânea</h4>
-              <p className="text-xs text-muted-foreground mt-1">Clique para validar a API: INPS, Garantia e IMPAR com integração automática.</p>
-              <div className="mt-3 inline-flex text-xs font-semibold text-primary hover:underline">
-                Validar conexão API →
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      ) : (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {currentRole === 'reception' && <ReceptionUI />}
+          {currentRole === 'doctor' && <DoctorUI />}
+          {currentRole === 'admin' && <AdminUI />}
+          {currentRole === 'patient' && <PatientUI />}
+        </div>
+      )}
     </DashboardLayout>
   );
 }

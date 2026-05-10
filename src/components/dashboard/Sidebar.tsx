@@ -28,7 +28,9 @@ const allItems = [
   { to: "/telemedicina", label: "Telemedicina", icon: Video, roles: ['doctor', 'patient'] },
 
   // Receção
+  { to: "/pacientes", label: "Utentes", icon: Users, roles: ['reception', 'admin', 'doctor'] },
   { to: "/agendamentos", label: "Agendamentos", icon: Calendar, roles: ['reception', 'admin'] },
+  { to: "/documentos", label: "Documentos", icon: Receipt, roles: ['reception', 'admin'] },
   { to: "/comunicacao", label: "WhatsApp & SMS", icon: MessageCircle, roles: ['reception', 'admin'] },
   { to: "/mobile", label: "Quiosque (Tablet)", icon: QrCode, roles: ['reception'] },
 

@@ -1,12 +1,14 @@
 import { ReactNode, useState, useEffect, useRef } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, Search, ShieldCheck, Menu, X, ChevronRight, Home, Siren, Loader2, User, Monitor, MonitorOff } from "lucide-react";
+import { Bell, Search, ShieldCheck, Menu, X, ChevronRight, Home, Siren, Loader2, User, Monitor, MonitorOff, AlertTriangle } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 
 const ROUTE_LABELS: Record<string, string> = {
   "": "Recepção",
   "agendamentos": "Agendamentos",
+  "pacientes": "Utentes & CRM",
+  "documentos": "Documentos & Saídas",
   "marcacao-online": "Marcação Online",
   "triagem": "Triagem Manchester",
   "prontuario": "Prontuário (EMR)",
@@ -37,6 +39,32 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
   const currentLabel = segments.length === 0 ? "Recepção" : (ROUTE_LABELS[segments[0]] ?? segments[0]);
+
+  const [dbConnectionError, setDbConnectionError] = useState<string | null>(null);
+
+  // Ping de Base de Dados (Teste de Conetividade Local -> Supabase)
+  useEffect(() => {
+    const pingDatabase = async () => {
+      console.log("[App Debug] Executando Ping de Base de Dados ao Supabase...");
+      try {
+        const { error } = await supabase.from('pacientes').select('id').limit(1);
+        if (error) {
+          console.error("[App Debug] Falha no Ping:", error);
+          let errorMessage = "Acesso Negado (Verifique Login/RLS)";
+          if (error.code === '42P01') errorMessage = "Tabela inexistente";
+          if (error.code === 'PGRST301') errorMessage = "Sessão expirada ou JWT inválido";
+          setDbConnectionError(`Erro de Conexão com a Base de Dados: ${errorMessage}`);
+        } else {
+          console.log("[App Debug] Conexão com Supabase OK!");
+          setDbConnectionError(null);
+        }
+      } catch (err: any) {
+        console.error("[App Debug] Erro fatal de rede:", err);
+        setDbConnectionError("Erro Crítico de Rede: Não foi possível alcançar o Supabase.");
+      }
+    };
+    pingDatabase();
+  }, []);
 
   // Hydrate kiosk preference from localStorage
   useEffect(() => {
@@ -101,6 +129,15 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
   }, [searchTerm]);
   return (
     <div className={`min-h-screen flex bg-background ${kioskMode ? "kiosk-mode" : ""}`} data-kiosk={kioskMode ? "on" : "off"}>
+      {dbConnectionError && (
+        <div className="fixed top-0 left-0 w-full z-[100] bg-destructive text-destructive-foreground px-4 py-2 flex items-center justify-center gap-3 text-sm font-bold shadow-lg animate-in slide-in-from-top">
+          <AlertTriangle className="size-5" />
+          <span>{dbConnectionError}</span>
+          <button onClick={() => window.location.reload()} className="ml-4 px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors">
+            Tentar Novamente
+          </button>
+        </div>
+      )}
       {/* Sidebar — desktop & tablet */}
       <div className="hidden lg:flex">
         <Sidebar />

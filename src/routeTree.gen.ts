@@ -16,11 +16,13 @@ import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProfissionaisRouteImport } from './routes/profissionais'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ParceriasRouteImport } from './routes/parcerias'
+import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as MarcacaoOnlineRouteImport } from './routes/marcacao-online'
 import { Route as FaturacaoRouteImport } from './routes/faturacao'
 import { Route as FarmaciaRouteImport } from './routes/farmacia'
 import { Route as EscalaRouteImport } from './routes/escala'
+import { Route as DocumentosRouteImport } from './routes/documentos'
 import { Route as DitadoRouteImport } from './routes/ditado'
 import { Route as ComunicacaoRouteImport } from './routes/comunicacao'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -62,6 +64,11 @@ const ParceriasRoute = ParceriasRouteImport.update({
   path: '/parcerias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PacientesRoute = PacientesRouteImport.update({
+  id: '/pacientes',
+  path: '/pacientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
@@ -85,6 +92,11 @@ const FarmaciaRoute = FarmaciaRouteImport.update({
 const EscalaRoute = EscalaRouteImport.update({
   id: '/escala',
   path: '/escala',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentosRoute = DocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DitadoRoute = DitadoRouteImport.update({
@@ -119,11 +131,13 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
+  '/documentos': typeof DocumentosRoute
   '/escala': typeof EscalaRoute
   '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
+  '/pacientes': typeof PacientesRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/profissionais': typeof ProfissionaisRoute
@@ -138,11 +152,13 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
+  '/documentos': typeof DocumentosRoute
   '/escala': typeof EscalaRoute
   '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
+  '/pacientes': typeof PacientesRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/profissionais': typeof ProfissionaisRoute
@@ -158,11 +174,13 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/comunicacao': typeof ComunicacaoRoute
   '/ditado': typeof DitadoRoute
+  '/documentos': typeof DocumentosRoute
   '/escala': typeof EscalaRoute
   '/farmacia': typeof FarmaciaRoute
   '/faturacao': typeof FaturacaoRoute
   '/marcacao-online': typeof MarcacaoOnlineRoute
   '/mobile': typeof MobileRoute
+  '/pacientes': typeof PacientesRoute
   '/parcerias': typeof ParceriasRoute
   '/portal': typeof PortalRoute
   '/profissionais': typeof ProfissionaisRoute
@@ -179,11 +197,13 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/comunicacao'
     | '/ditado'
+    | '/documentos'
     | '/escala'
     | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
+    | '/pacientes'
     | '/parcerias'
     | '/portal'
     | '/profissionais'
@@ -198,11 +218,13 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/comunicacao'
     | '/ditado'
+    | '/documentos'
     | '/escala'
     | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
+    | '/pacientes'
     | '/parcerias'
     | '/portal'
     | '/profissionais'
@@ -217,11 +239,13 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/comunicacao'
     | '/ditado'
+    | '/documentos'
     | '/escala'
     | '/farmacia'
     | '/faturacao'
     | '/marcacao-online'
     | '/mobile'
+    | '/pacientes'
     | '/parcerias'
     | '/portal'
     | '/profissionais'
@@ -237,11 +261,13 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   ComunicacaoRoute: typeof ComunicacaoRoute
   DitadoRoute: typeof DitadoRoute
+  DocumentosRoute: typeof DocumentosRoute
   EscalaRoute: typeof EscalaRoute
   FarmaciaRoute: typeof FarmaciaRoute
   FaturacaoRoute: typeof FaturacaoRoute
   MarcacaoOnlineRoute: typeof MarcacaoOnlineRoute
   MobileRoute: typeof MobileRoute
+  PacientesRoute: typeof PacientesRoute
   ParceriasRoute: typeof ParceriasRoute
   PortalRoute: typeof PortalRoute
   ProfissionaisRoute: typeof ProfissionaisRoute
@@ -302,6 +328,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParceriasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pacientes': {
+      id: '/pacientes'
+      path: '/pacientes'
+      fullPath: '/pacientes'
+      preLoaderRoute: typeof PacientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mobile': {
       id: '/mobile'
       path: '/mobile'
@@ -335,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/escala'
       fullPath: '/escala'
       preLoaderRoute: typeof EscalaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentos': {
+      id: '/documentos'
+      path: '/documentos'
+      fullPath: '/documentos'
+      preLoaderRoute: typeof DocumentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ditado': {
@@ -381,11 +421,13 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   ComunicacaoRoute: ComunicacaoRoute,
   DitadoRoute: DitadoRoute,
+  DocumentosRoute: DocumentosRoute,
   EscalaRoute: EscalaRoute,
   FarmaciaRoute: FarmaciaRoute,
   FaturacaoRoute: FaturacaoRoute,
   MarcacaoOnlineRoute: MarcacaoOnlineRoute,
   MobileRoute: MobileRoute,
+  PacientesRoute: PacientesRoute,
   ParceriasRoute: ParceriasRoute,
   PortalRoute: PortalRoute,
   ProfissionaisRoute: ProfissionaisRoute,
@@ -397,3 +439,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
