@@ -5,8 +5,9 @@ import { Activity, Calendar, Building2, Users, TrendingUp, Bed, Scissors, Loader
 import clinicImg from "@/assets/medicentro-clinic.jpg";
 import logoImg from "@/assets/medicentro-logo.jpg";
 import { useRole } from "@/hooks/useRole";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 export const Route = createFileRoute("/")({
@@ -36,6 +37,9 @@ function Index() {
   const [loading, setLoading] = useState(true);
   const [timeNow, setTimeNow] = useState(new Date());
   const [queue, setQueue] = useState<any[]>([]);
+  const [alertedIds, setAlertedIds] = useState<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isFirstLoadRef = useRef(true);
   const [unitStatus, setUnitStatus] = useState<any>({
     sede: "Aberto",
     monte_sossego: "Operante",
@@ -203,8 +207,35 @@ function Index() {
 
     const channel = supabase
       .channel(`dashboard_unidade_${selectedUnitId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'triagens', filter: `unidade_id=eq.${selectedUnitId}` }, () => {
-        fetchDashboardData(); // Auto refresh when new patient triaged
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'triagens' }, (payload: any) => {
+        const row = payload.new;
+        const priority: string = row?.prioridade || "";
+        const isCritical = priority.startsWith("Vermelho") || priority.startsWith("Laranja");
+        if (isCritical && row?.id) {
+          // Play alert sound
+          try { audioRef.current?.play().catch(() => {}); } catch {}
+          setAlertedIds(prev => {
+            const next = new Set(prev);
+            next.add(String(row.id));
+            return next;
+          });
+          // Auto-clear glow after 12s
+          setTimeout(() => {
+            setAlertedIds(prev => {
+              const next = new Set(prev);
+              next.delete(String(row.id));
+              return next;
+            });
+          }, 12000);
+          toast.error(`🚨 ${priority.split(" ")[0]} — ${row.paciente_nome || row.nome || "Paciente"}`, {
+            description: `Queixa: ${row.sintoma || row.queixa || "—"} · Encaminhar imediatamente.`,
+            duration: 10000,
+          });
+        }
+        fetchDashboardData();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'triagens', filter: `unidade_id=eq.${selectedUnitId}` }, () => {
+        fetchDashboardData();
       })
       .subscribe();
 
@@ -228,6 +259,9 @@ function Index() {
   return (
     <DashboardLayout title="Recepção Medicentro" subtitle={currentUnit}>
       <div className="space-y-6">
+        {/* Alert audio (data URI WAV beep) */}
+        <audio ref={audioRef} preload="auto" src="data:audio/wav;base64,UklGRoQGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YWAGAAAAAA8YHihEMUM6Wj9hSWVRZllRYUNiOl00RShEHikPGAD/8eji2MfMt8mqx6DPm9icUKBKsEbAUM5g3GjsdPqA/IT4iPaO9JT0mvKi8qzysvK68b71xPnK+876z/3AAcQGwgvECsAJxAnECcQJxAnECcQJxAnECcQJxAjA///z/PD46/Tw7vPp9ufx5e/k7uPt5ezm6+ru6/Hu8/D08fjz/PT/9wH7BPwG/wkCDAUOCBELFA4XESoUOhdJG1geZyJzJYIomCusLrkx2DPpNvU5/Tz/QABEAEUARgBHAEYARABCAD8APAA4ADQALwAqACUAIQAdABoAFwAUABAADAAJAAcABAAAAP/+/Pz6+vj4+Pf3+Pj5+vz9/wADBgcKDxIVGBwgIyYpLDA0NztAREhMUFRYXGBkaG10eHyAhIiMkJSYnaCkqKytsLW3uby/wsTHycvOz9HT1NbY2dvc3uHj5OXn6OnrGAAA" />
+
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl p-6 lg:p-10 text-primary-foreground min-h-[340px] flex items-end ring-1 ring-border/50" style={{ boxShadow: "var(--shadow-elegant)" }}>
           <img src={clinicImg} alt="Clínica Privada Medicentro, Mindelo" className="absolute inset-0 size-full object-cover scale-105" />
@@ -306,9 +340,11 @@ function Index() {
                 {queue.map((q) => {
                   const timeAgo = formatDistanceToNow(new Date(q.created_at || new Date()), { addSuffix: true, locale: pt });
                   const priorityClass = priorityStyle[q.prioridade] || priorityStyle['Normal'];
-                  
+                  const isAlerted = alertedIds.has(String(q.id));
+                  const isCritical = (q.prioridade || "").startsWith("Vermelho") || (q.prioridade || "").startsWith("Laranja");
+
                   return (
-                    <li key={q.id} className="px-5 py-4 flex items-center gap-4 hover:bg-muted/40 transition">
+                    <li key={q.id} className={`px-5 py-4 flex items-center gap-4 transition-all duration-500 ${isAlerted ? 'bg-destructive/10 ring-2 ring-destructive animate-pulse' : isCritical ? 'bg-destructive/5' : 'hover:bg-muted/40'}`}>
                       <div className="size-10 rounded-full bg-accent grid place-items-center text-accent-foreground font-semibold text-sm">
                         {(q.paciente_nome || q.name || "N").split(" ").map((n: string) => n[0]).join("").slice(0,2)}
                       </div>
