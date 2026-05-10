@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect, useRef } from "react";
 import { Sidebar } from "./Sidebar";
-import { Bell, Search, ShieldCheck, Menu, X, ChevronRight, Home, Siren, Loader2, User } from "lucide-react";
+import { Bell, Search, ShieldCheck, Menu, X, ChevronRight, Home, Siren, Loader2, User, Monitor, MonitorOff } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 
@@ -32,9 +32,24 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
 
   const now = new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [kioskMode, setKioskMode] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
   const currentLabel = segments.length === 0 ? "Recepção" : (ROUTE_LABELS[segments[0]] ?? segments[0]);
+
+  // Hydrate kiosk preference from localStorage
+  useEffect(() => {
+    try {
+      setKioskMode(localStorage.getItem("medicentro:kiosk") === "1");
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem("medicentro:kiosk", kioskMode ? "1" : "0"); } catch {}
+  }, [kioskMode, hydrated]);
 
   // Handle outside click
   useEffect(() => {
@@ -85,7 +100,7 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
     return () => clearTimeout(timer);
   }, [searchTerm]);
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className={`min-h-screen flex bg-background ${kioskMode ? "kiosk-mode" : ""}`} data-kiosk={kioskMode ? "on" : "off"}>
       {/* Sidebar — desktop & tablet */}
       <div className="hidden lg:flex">
         <Sidebar />
@@ -119,6 +134,17 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setKioskMode((v) => !v)}
+              aria-pressed={kioskMode}
+              aria-label={kioskMode ? "Desativar modo recepção" : "Ativar modo recepção"}
+              title={kioskMode ? "Sair do modo recepção" : "Modo recepção (ecrã grande)"}
+              className={`hidden md:inline-flex items-center justify-center gap-1.5 h-9 px-2 rounded-md border text-xs font-semibold transition-colors ${kioskMode ? "bg-primary text-primary-foreground border-primary" : "bg-muted/40 text-muted-foreground border-border/60 hover:bg-muted"}`}
+            >
+              {kioskMode ? <MonitorOff className="size-3.5" /> : <Monitor className="size-3.5" />}
+              <span className="hidden lg:inline">{kioskMode ? "Sair" : "Recepção"}</span>
+            </button>
             <div ref={searchRef} className="relative hidden xl:flex items-center gap-2 h-9 px-3 rounded-md border border-border/60 bg-muted/40 text-xs text-muted-foreground w-64 focus-within:ring-2 ring-primary/20 transition-all">
               <Search className="size-3.5" />
               <input 
