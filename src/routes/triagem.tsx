@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { useState } from "react";
-import { Sparkles, Loader2, AlertTriangle, CheckCircle2, Ticket } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, CheckCircle2, Ticket, Thermometer, HeartPulse, Activity, Droplets } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Slider } from "@/components/ui/slider";
 
 export const Route = createFileRoute("/triagem")({
   head: () => ({
@@ -24,9 +25,47 @@ type Result = {
   reasoning: string;
 };
 
-function analyze(symptoms: string): Result {
+type Vitals = {
+  temperature: number | "";
+  systolic: number | "";
+  diastolic: number | "";
+  heartRate: number | "";
+  oxygen: number | "";
+  pain: number;
+};
+
+function analyze(symptoms: string, v: Vitals): Result {
   const s = symptoms.toLowerCase();
-  
+
+  // --- Vital signs override (red flags) ---
+  const temp = typeof v.temperature === "number" ? v.temperature : null;
+  const spo2 = typeof v.oxygen === "number" ? v.oxygen : null;
+  const hr = typeof v.heartRate === "number" ? v.heartRate : null;
+  const sys = typeof v.systolic === "number" ? v.systolic : null;
+
+  // Critical: SpO2 < 88, HR extreme, severe hypertension/hypotension
+  if ((spo2 !== null && spo2 < 88) || (hr !== null && (hr > 140 || hr < 40)) || (sys !== null && (sys >= 200 || sys < 80))) {
+    return { specialty: "Reanimação / Clínica Geral", priority: "Vermelho (Emergência)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Sinais vitais críticos detectados (SpO₂ ${spo2 ?? "—"}%, FC ${hr ?? "—"} bpm, PA sist. ${sys ?? "—"} mmHg). Reanimação imediata.` };
+  }
+
+  // Orange: severe vitals deviation
+  if ((temp !== null && temp >= 39.5) || (spo2 !== null && spo2 < 92) || v.pain >= 8) {
+    return { specialty: "Clínica Geral / Urgência", priority: "Laranja (Muito Urgente)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Sinais vitais alterados (Tº ${temp ?? "—"}°C, SpO₂ ${spo2 ?? "—"}%, dor ${v.pain}/10). Avaliação em 10 min.` };
+  }
+
+  // Yellow: moderate fever or pain
+  if ((temp !== null && temp > 38.5) || v.pain >= 5) {
+    const result = quickTextTriage(s);
+    if (result.priority === "Verde (Pouco Urgente)" || result.priority === "Azul (Não Urgente)") {
+      return { specialty: result.specialty, priority: "Amarelo (Urgente)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Febre/dor moderada (Tº ${temp ?? "—"}°C, dor ${v.pain}/10). Reclassificado para Amarelo.` };
+    }
+    return result;
+  }
+
+  return quickTextTriage(s);
+}
+
+function quickTextTriage(s: string): Result {
   if (/peito|falta de ar|inconsciente|hemorragia grave|parada/.test(s)) {
     return { specialty: "Cardiologia / Reanimação", priority: "Vermelho (Emergência)", unit: "Health Hospitality (Urgência 24h)", reasoning: "Risco imediato de vida. Requer atendimento no bloco de reanimação (0 min)." };
   }
@@ -42,7 +81,7 @@ function analyze(symptoms: string): Result {
   if (/check-up|rotina|receita|atestado/.test(s)) {
     return { specialty: "Clínica Geral", priority: "Azul (Não Urgente)", unit: "Clínica Sede (Ambulatório)", reasoning: "Atendimento eletivo. Pode ser agendado por marcação." };
   }
-  
+
   return { specialty: "Clínica Geral", priority: "Verde (Pouco Urgente)", unit: "Clínica Sede (Ambulatório)", reasoning: "Avaliação ambulatorial padrão recomendada." };
 }
 
@@ -52,6 +91,15 @@ function TriagemPage() {
   const [symptoms, setSymptoms] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+
+  const [vitals, setVitals] = useState<Vitals>({
+    temperature: "",
+    systolic: "",
+    diastolic: "",
+    heartRate: "",
+    oxygen: "",
+    pain: 0,
+  });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ticket, setTicket] = useState<string | null>(null);
@@ -62,7 +110,7 @@ function TriagemPage() {
     setResult(null);
     setTicket(null);
     setTimeout(() => {
-      setResult(analyze(symptoms));
+      setResult(analyze(symptoms, vitals));
       setLoading(false);
     }, 900);
   };
@@ -76,11 +124,20 @@ function TriagemPage() {
       // Real Supabase Insert
       const { error } = await supabase.from('triagens').insert([{
         nome: name,
+        paciente_nome: name,
         queixa: symptoms,
+        sintoma: symptoms,
         prioridade: result.priority,
         unidade: result.unit,
         especialidade: result.specialty,
         metodo: method,
+        temperatura: vitals.temperature === "" ? null : vitals.temperature,
+        pa_sistolica: vitals.systolic === "" ? null : vitals.systolic,
+        pa_diastolica: vitals.diastolic === "" ? null : vitals.diastolic,
+        frequencia_cardiaca: vitals.heartRate === "" ? null : vitals.heartRate,
+        saturacao_o2: vitals.oxygen === "" ? null : vitals.oxygen,
+        escala_dor: vitals.pain,
+        status: 'aguardando',
         created_at: new Date().toISOString()
       }]);
 
