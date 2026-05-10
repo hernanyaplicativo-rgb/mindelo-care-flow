@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/dashboard/Layout";
 import { useState } from "react";
-import { Sparkles, Loader2, AlertTriangle, CheckCircle2, Ticket } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, CheckCircle2, Ticket, Thermometer, HeartPulse, Activity, Droplets } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Slider } from "@/components/ui/slider";
 
 export const Route = createFileRoute("/triagem")({
   head: () => ({
@@ -24,9 +25,47 @@ type Result = {
   reasoning: string;
 };
 
-function analyze(symptoms: string): Result {
+type Vitals = {
+  temperature: number | "";
+  systolic: number | "";
+  diastolic: number | "";
+  heartRate: number | "";
+  oxygen: number | "";
+  pain: number;
+};
+
+function analyze(symptoms: string, v: Vitals): Result {
   const s = symptoms.toLowerCase();
-  
+
+  // --- Vital signs override (red flags) ---
+  const temp = typeof v.temperature === "number" ? v.temperature : null;
+  const spo2 = typeof v.oxygen === "number" ? v.oxygen : null;
+  const hr = typeof v.heartRate === "number" ? v.heartRate : null;
+  const sys = typeof v.systolic === "number" ? v.systolic : null;
+
+  // Critical: SpO2 < 88, HR extreme, severe hypertension/hypotension
+  if ((spo2 !== null && spo2 < 88) || (hr !== null && (hr > 140 || hr < 40)) || (sys !== null && (sys >= 200 || sys < 80))) {
+    return { specialty: "Reanimação / Clínica Geral", priority: "Vermelho (Emergência)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Sinais vitais críticos detectados (SpO₂ ${spo2 ?? "—"}%, FC ${hr ?? "—"} bpm, PA sist. ${sys ?? "—"} mmHg). Reanimação imediata.` };
+  }
+
+  // Orange: severe vitals deviation
+  if ((temp !== null && temp >= 39.5) || (spo2 !== null && spo2 < 92) || v.pain >= 8) {
+    return { specialty: "Clínica Geral / Urgência", priority: "Laranja (Muito Urgente)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Sinais vitais alterados (Tº ${temp ?? "—"}°C, SpO₂ ${spo2 ?? "—"}%, dor ${v.pain}/10). Avaliação em 10 min.` };
+  }
+
+  // Yellow: moderate fever or pain
+  if ((temp !== null && temp > 38.5) || v.pain >= 5) {
+    const result = quickTextTriage(s);
+    if (result.priority === "Verde (Pouco Urgente)" || result.priority === "Azul (Não Urgente)") {
+      return { specialty: result.specialty, priority: "Amarelo (Urgente)", unit: "Health Hospitality (Urgência 24h)", reasoning: `Febre/dor moderada (Tº ${temp ?? "—"}°C, dor ${v.pain}/10). Reclassificado para Amarelo.` };
+    }
+    return result;
+  }
+
+  return quickTextTriage(s);
+}
+
+function quickTextTriage(s: string): Result {
   if (/peito|falta de ar|inconsciente|hemorragia grave|parada/.test(s)) {
     return { specialty: "Cardiologia / Reanimação", priority: "Vermelho (Emergência)", unit: "Health Hospitality (Urgência 24h)", reasoning: "Risco imediato de vida. Requer atendimento no bloco de reanimação (0 min)." };
   }
@@ -42,7 +81,7 @@ function analyze(symptoms: string): Result {
   if (/check-up|rotina|receita|atestado/.test(s)) {
     return { specialty: "Clínica Geral", priority: "Azul (Não Urgente)", unit: "Clínica Sede (Ambulatório)", reasoning: "Atendimento eletivo. Pode ser agendado por marcação." };
   }
-  
+
   return { specialty: "Clínica Geral", priority: "Verde (Pouco Urgente)", unit: "Clínica Sede (Ambulatório)", reasoning: "Avaliação ambulatorial padrão recomendada." };
 }
 
@@ -52,6 +91,15 @@ function TriagemPage() {
   const [symptoms, setSymptoms] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+
+  const [vitals, setVitals] = useState<Vitals>({
+    temperature: "",
+    systolic: "",
+    diastolic: "",
+    heartRate: "",
+    oxygen: "",
+    pain: 0,
+  });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ticket, setTicket] = useState<string | null>(null);
@@ -62,7 +110,7 @@ function TriagemPage() {
     setResult(null);
     setTicket(null);
     setTimeout(() => {
-      setResult(analyze(symptoms));
+      setResult(analyze(symptoms, vitals));
       setLoading(false);
     }, 900);
   };
@@ -76,11 +124,20 @@ function TriagemPage() {
       // Real Supabase Insert
       const { error } = await supabase.from('triagens').insert([{
         nome: name,
+        paciente_nome: name,
         queixa: symptoms,
+        sintoma: symptoms,
         prioridade: result.priority,
         unidade: result.unit,
         especialidade: result.specialty,
         metodo: method,
+        temperatura: vitals.temperature === "" ? null : vitals.temperature,
+        pa_sistolica: vitals.systolic === "" ? null : vitals.systolic,
+        pa_diastolica: vitals.diastolic === "" ? null : vitals.diastolic,
+        frequencia_cardiaca: vitals.heartRate === "" ? null : vitals.heartRate,
+        saturacao_o2: vitals.oxygen === "" ? null : vitals.oxygen,
+        escala_dor: vitals.pain,
+        status: 'aguardando',
         created_at: new Date().toISOString()
       }]);
 
@@ -140,6 +197,60 @@ function TriagemPage() {
             <label className="text-xs font-medium text-muted-foreground">Queixa Principal / Sintomas</label>
             <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} required rows={5} placeholder="ex: dor forte no peito e suor frio..." className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
           </div>
+
+          {/* Vital Signs Section */}
+          <div className="rounded-lg border bg-accent/20 p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="size-4 text-primary" />
+              <h4 className="text-sm font-semibold">Sinais Vitais</h4>
+              <span className="text-[10px] text-muted-foreground ml-auto">Override clínico ativo</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Thermometer className="size-3" /> Temperatura (°C)</label>
+                <input type="number" step="0.1" min="30" max="45" value={vitals.temperature}
+                  onChange={e => setVitals(v => ({ ...v, temperature: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
+                  placeholder="36.5" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Droplets className="size-3" /> Saturação O₂ (%)</label>
+                <input type="number" min="50" max="100" value={vitals.oxygen}
+                  onChange={e => setVitals(v => ({ ...v, oxygen: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                  placeholder="98" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Activity className="size-3" /> Tensão Arterial (mmHg)</label>
+                <div className="mt-1 flex items-center gap-2">
+                  <input type="number" min="40" max="260" value={vitals.systolic}
+                    onChange={e => setVitals(v => ({ ...v, systolic: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                    placeholder="Sistólica" className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <span className="text-muted-foreground font-bold">/</span>
+                  <input type="number" min="20" max="160" value={vitals.diastolic}
+                    onChange={e => setVitals(v => ({ ...v, diastolic: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                    placeholder="Diastólica" className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><HeartPulse className="size-3" /> Frequência Cardíaca (bpm)</label>
+                <input type="number" min="20" max="250" value={vitals.heartRate}
+                  onChange={e => setVitals(v => ({ ...v, heartRate: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                  placeholder="80" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+                  <span>Escala de Dor (0–10)</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${vitals.pain >= 8 ? 'bg-destructive text-destructive-foreground' : vitals.pain >= 5 ? 'bg-orange-500 text-white' : vitals.pain >= 1 ? 'bg-yellow-400 text-black' : 'bg-muted text-muted-foreground'}`}>
+                    {vitals.pain}/10
+                  </span>
+                </label>
+                <Slider value={[vitals.pain]} min={0} max={10} step={1}
+                  onValueChange={([val]) => setVitals(v => ({ ...v, pain: val }))}
+                  className="mt-3" />
+              </div>
+            </div>
+          </div>
+
           <button disabled={loading} className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60 transition-all hover:opacity-90" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-elegant)" }}>
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
             {loading ? "Processando Protocolo..." : "Aplicar Protocolo Manchester"}
