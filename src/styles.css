@@ -162,3 +162,35 @@
     letter-spacing: -0.02em;
   }
 }
+
+/*
+ * Kiosk / Reception mode
+ * Optimized for large reception screens: bigger main typography, more
+ * generous spacing, larger touch targets — while keeping the global
+ * header, breadcrumbs and SOS button compact so navigation stays scannable.
+ */
+.kiosk-mode main {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  padding: 2rem;
+}
+@media (min-width: 1024px) {
+  .kiosk-mode main { padding: 2.75rem 3rem; font-size: 1.1875rem; }
+}
+@media (min-width: 1536px) {
+  .kiosk-mode main { padding: 3.25rem 4rem; font-size: 1.25rem; }
+}
+.kiosk-mode main h1 { font-size: 2.25rem; line-height: 1.15; }
+.kiosk-mode main h2 { font-size: 1.75rem; line-height: 1.2; }
+.kiosk-mode main h3 { font-size: 1.375rem; line-height: 1.25; }
+.kiosk-mode main .text-xs { font-size: 0.875rem; }
+.kiosk-mode main .text-sm { font-size: 1rem; }
+.kiosk-mode main button,
+.kiosk-mode main a[role="button"],
+.kiosk-mode main [data-kiosk-target] {
+  min-height: 2.75rem;
+}
+.kiosk-mode main .grid { gap: 1.5rem; }
+.kiosk-mode main .space-y-4 > * + * { margin-top: 1.25rem; }
+.kiosk-mode main .space-y-6 > * + * { margin-top: 2rem; }
+/* Header, breadcrumbs and SOS stay compact intentionally */
