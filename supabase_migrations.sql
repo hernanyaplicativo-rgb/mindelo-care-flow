@@ -79,3 +79,19 @@ USING (true) WITH CHECK (true); -- For demo purposes. In production: USING (auth
 
 -- 8. Add to Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE public.professionals;
+
+-- 9. Vital Signs columns on triagens (run if not already present)
+ALTER TABLE public.triagens
+  ADD COLUMN IF NOT EXISTS temperatura NUMERIC(4,1),
+  ADD COLUMN IF NOT EXISTS pa_sistolica INT,
+  ADD COLUMN IF NOT EXISTS pa_diastolica INT,
+  ADD COLUMN IF NOT EXISTS frequencia_cardiaca INT,
+  ADD COLUMN IF NOT EXISTS saturacao_o2 INT,
+  ADD COLUMN IF NOT EXISTS escala_dor INT CHECK (escala_dor BETWEEN 0 AND 10),
+  ADD COLUMN IF NOT EXISTS paciente_nome TEXT,
+  ADD COLUMN IF NOT EXISTS sintoma TEXT,
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'aguardando',
+  ADD COLUMN IF NOT EXISTS unidade_id INT;
+
+-- 10. Ensure realtime publishes the table
+ALTER PUBLICATION supabase_realtime ADD TABLE public.triagens;
