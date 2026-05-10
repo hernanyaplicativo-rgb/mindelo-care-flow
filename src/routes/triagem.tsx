@@ -197,6 +197,60 @@ function TriagemPage() {
             <label className="text-xs font-medium text-muted-foreground">Queixa Principal / Sintomas</label>
             <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} required rows={5} placeholder="ex: dor forte no peito e suor frio..." className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
           </div>
+
+          {/* Vital Signs Section */}
+          <div className="rounded-lg border bg-accent/20 p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="size-4 text-primary" />
+              <h4 className="text-sm font-semibold">Sinais Vitais</h4>
+              <span className="text-[10px] text-muted-foreground ml-auto">Override clínico ativo</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Thermometer className="size-3" /> Temperatura (°C)</label>
+                <input type="number" step="0.1" min="30" max="45" value={vitals.temperature}
+                  onChange={e => setVitals(v => ({ ...v, temperature: e.target.value === "" ? "" : parseFloat(e.target.value) }))}
+                  placeholder="36.5" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Droplets className="size-3" /> Saturação O₂ (%)</label>
+                <input type="number" min="50" max="100" value={vitals.oxygen}
+                  onChange={e => setVitals(v => ({ ...v, oxygen: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                  placeholder="98" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><Activity className="size-3" /> Tensão Arterial (mmHg)</label>
+                <div className="mt-1 flex items-center gap-2">
+                  <input type="number" min="40" max="260" value={vitals.systolic}
+                    onChange={e => setVitals(v => ({ ...v, systolic: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                    placeholder="Sistólica" className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <span className="text-muted-foreground font-bold">/</span>
+                  <input type="number" min="20" max="160" value={vitals.diastolic}
+                    onChange={e => setVitals(v => ({ ...v, diastolic: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                    placeholder="Diastólica" className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1"><HeartPulse className="size-3" /> Frequência Cardíaca (bpm)</label>
+                <input type="number" min="20" max="250" value={vitals.heartRate}
+                  onChange={e => setVitals(v => ({ ...v, heartRate: e.target.value === "" ? "" : parseInt(e.target.value) }))}
+                  placeholder="80" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+                  <span>Escala de Dor (0–10)</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${vitals.pain >= 8 ? 'bg-destructive text-destructive-foreground' : vitals.pain >= 5 ? 'bg-orange-500 text-white' : vitals.pain >= 1 ? 'bg-yellow-400 text-black' : 'bg-muted text-muted-foreground'}`}>
+                    {vitals.pain}/10
+                  </span>
+                </label>
+                <Slider value={[vitals.pain]} min={0} max={10} step={1}
+                  onValueChange={([val]) => setVitals(v => ({ ...v, pain: val }))}
+                  className="mt-3" />
+              </div>
+            </div>
+          </div>
+
           <button disabled={loading} className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60 transition-all hover:opacity-90" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-elegant)" }}>
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
             {loading ? "Processando Protocolo..." : "Aplicar Protocolo Manchester"}
