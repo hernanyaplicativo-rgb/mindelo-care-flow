@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type Role = 'admin' | 'doctor' | 'reception' | 'patient';
+type Role = 'admin' | 'doctor' | 'reception' | 'patient' | 'nurse';
 export type Unit = 'Clínica Sede (Madeiralzinho)' | 'Unidade Monte Sossego';
 
 interface RoleContextType {

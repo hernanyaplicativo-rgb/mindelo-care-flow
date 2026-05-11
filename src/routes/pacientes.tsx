@@ -91,14 +91,23 @@ function Pacientes() {
 
     try {
       setIsSaving(true);
-      console.log('Dados a enviar:', editingPaciente);
+      console.log('Dados originais:', editingPaciente);
       
-      // Clean data for Supabase
+      // Clean data: remove id/created_at and convert empty strings to null
       const isNew = !editingPaciente.id || editingPaciente.id === '';
-      const { id, created_at, ...updateData } = editingPaciente;
+      const { id, created_at, ...rawUpdateData } = editingPaciente;
+      
+      const updateData = Object.fromEntries(
+        Object.entries(rawUpdateData).map(([key, value]) => [
+          key, 
+          value === "" ? null : value
+        ])
+      );
+
+      console.log('Dados limpos para enviar:', updateData);
       
       const { error } = isNew 
-        ? await supabase.from('pacientes').insert(updateData)
+        ? await supabase.from('pacientes').insert([updateData])
         : await supabase.from('pacientes').update(updateData).eq('id', id);
 
       if (error) {
@@ -109,7 +118,7 @@ function Pacientes() {
       toast.success(isNew ? "Cadastro salvo!" : "Paciente atualizado!");
       setIsModalOpen(false);
       setEditingPaciente(null);
-      await fetchPacientes(); // Refresh list on background
+      await fetchPacientes();
     } catch (error: any) {
       console.error("Erro fatal ao salvar paciente:", error);
       toast.error(`Falha no processamento: ${error.message || 'Erro de conexão'}`);

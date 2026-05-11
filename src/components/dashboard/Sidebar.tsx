@@ -4,11 +4,12 @@ import { useRole, Unit } from "@/hooks/useRole";
 
 import logoImg from "@/assets/medicentro-logo.jpg";
 
-type Role = 'admin' | 'doctor' | 'reception' | 'patient';
+type Role = 'admin' | 'doctor' | 'reception' | 'patient' | 'nurse';
 
 const roles = [
   { id: 'admin', label: 'Gerente / Admin', icon: ShieldCheck },
   { id: 'doctor', label: 'Médico', icon: Stethoscope },
+  { id: 'nurse', label: 'Enfermeiro', icon: Activity },
   { id: 'reception', label: 'Receção', icon: Headset },
   { id: 'patient', label: 'Paciente', icon: User },
 ] as const;
@@ -17,20 +18,20 @@ const allItems = [
   // Admin
   { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ['admin'] },
   { to: "/analytics", label: "Analytics & BI", icon: BarChart3, roles: ['admin'] },
-  { to: "/escala", label: "Gestão de Escalas", icon: Users, roles: ['admin'] },
+  { to: "/escala", label: "Gestão de Escalas", icon: Users, roles: ['admin', 'nurse'] },
   { to: "/profissionais", label: "Profissionais", icon: UserCheck, roles: ['admin'] },
   { to: "/farmacia", label: "Farmácia & Stock", icon: Pill, roles: ['admin', 'reception'] },
   { to: "/faturacao", label: "Faturação & Caixa", icon: Receipt, roles: ['admin', 'reception'] },
   { to: "/parcerias", label: "Parcerias", icon: Building2, roles: ['admin'] },
 
-  // Médico
-  { to: "/prontuario", label: "Prontuário (EMR)", icon: FileHeart, roles: ['doctor'] },
-  { to: "/triagem", label: "Triagem IA", icon: Activity, roles: ['doctor', 'reception'] },
+  // Médico & Enfermagem
+  { to: "/prontuario", label: "Prontuário (EMR)", icon: FileHeart, roles: ['doctor', 'nurse'] },
+  { to: "/triagem", label: "Triagem Manchester", icon: Activity, roles: ['doctor', 'reception', 'nurse'] },
   { to: "/ditado", label: "Ditado IA (EMR)", icon: Mic, roles: ['doctor'] },
   { to: "/telemedicina", label: "Telemedicina", icon: Video, roles: ['doctor', 'patient'] },
 
   // Receção
-  { to: "/pacientes", label: "Utentes", icon: Users, roles: ['reception', 'admin', 'doctor'] },
+  { to: "/pacientes", label: "Utentes", icon: Users, roles: ['reception', 'admin', 'doctor', 'nurse'] },
   { to: "/agendamentos", label: "Agendamentos", icon: Calendar, roles: ['reception', 'admin'] },
   { to: "/documentos", label: "Documentos", icon: Receipt, roles: ['reception', 'admin'] },
   { to: "/comunicacao", label: "WhatsApp & SMS", icon: MessageCircle, roles: ['reception', 'admin'] },
@@ -39,7 +40,7 @@ const allItems = [
   // Paciente
   { to: "/portal", label: "Portal do Paciente", icon: UserCircle, roles: ['patient'] },
   { to: "/marcacao-online", label: "Marcação Online", icon: Smartphone, roles: ['patient'] },
-  { to: "/sos", label: "SOS · Emergência", icon: Siren, roles: ['admin', 'reception', 'doctor', 'patient'] },
+  { to: "/sos", label: "SOS · Emergência", icon: Siren, roles: ['admin', 'reception', 'doctor', 'patient', 'nurse'] },
 ];
 
 export function Sidebar({ className = "" }: { className?: string }) {

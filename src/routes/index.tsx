@@ -387,6 +387,26 @@ function Index() {
     </div>
   );
 
+  const NurseUI = () => (
+    <div className="space-y-6">
+      <HeroBanner />
+      <StatsRow />
+      <div className="grid lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2">
+          <TriageQueue />
+        </div>
+        <div className="space-y-6">
+          <Link to="/triagem" className="block p-8 bg-gradient-to-br from-primary to-primary-dark rounded-[2rem] text-white shadow-xl hover:scale-[1.02] transition-all group">
+             <Activity className="size-12 mb-4 group-hover:scale-110 transition-transform" />
+             <h3 className="text-xl font-bold tracking-tight">Nova Triagem</h3>
+             <p className="text-white/70 text-sm mt-2">Iniciar protocolo Manchester para paciente em espera na recepção.</p>
+          </Link>
+          <StatusCard />
+        </div>
+      </div>
+    </div>
+  );
+
   const PatientUI = () => (
     <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <div className="text-center space-y-4">
@@ -424,8 +444,18 @@ function Index() {
     </div>
   );
 
+  const getDashboardTitle = () => {
+    switch(currentRole) {
+      case 'admin': return "Painel de Controlo · Admin";
+      case 'doctor': return "Central Médica · Medicentro";
+      case 'nurse': return "Posto de Enfermagem · Triagem";
+      case 'patient': return "Portal do Utente";
+      default: return "Recepção Medicentro";
+    }
+  };
+
   return (
-    <DashboardLayout title="Recepção Medicentro" subtitle={currentUnit}>
+    <DashboardLayout title={getDashboardTitle()} subtitle={currentUnit}>
       {loading ? (
         <div className="h-[70vh] grid place-items-center">
           <div className="flex flex-col items-center gap-6">
@@ -440,6 +470,7 @@ function Index() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {currentRole === 'reception' && <ReceptionUI />}
           {currentRole === 'doctor' && <DoctorUI />}
+          {currentRole === 'nurse' && <NurseUI />}
           {currentRole === 'admin' && <AdminUI />}
           {currentRole === 'patient' && <PatientUI />}
         </div>
