@@ -37,6 +37,23 @@ const priorityStyle: Record<string, string> = {
   'VIP': "bg-primary text-primary-foreground",
 };
 
+const DASHBOARD_TIMEOUT_MS = 2500;
+
+async function withDashboardTimeout<T>(request: PromiseLike<T>, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      Promise.resolve(request),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label}: ligação demorou demasiado`)), DASHBOARD_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 function Index() {
   const { currentUnit, currentRole } = useRole();
   const [loading, setLoading] = useState(true);
@@ -66,21 +83,27 @@ function Index() {
     try {
       if (currentRole === 'admin') {
         console.log("[App Debug] Buscando logs de auditoria...");
-        const { data, error } = await supabase
-          .from('documentos_emitidos')
-          .select('*, pacientes(nome_completo)')
-          .order('created_at', { ascending: false })
-          .limit(10);
+        const { data, error } = await withDashboardTimeout(
+          supabase
+            .from('documentos_emitidos')
+            .select('*, pacientes(nome_completo)')
+            .order('created_at', { ascending: false })
+            .limit(10),
+          'Logs de auditoria'
+        );
         if (error) throw error;
         setLogs(data || []);
       }
 
       console.log("[App Debug] Buscando fila de triagem...");
-      const { data: queueData, error: queueError } = await supabase
-        .from('triagens')
-        .select('*')
-        .eq('unidade_id', selectedUnitId)
-        .eq('status', 'aguardando');
+      const { data: queueData, error: queueError } = await withDashboardTimeout(
+        supabase
+          .from('triagens')
+          .select('*')
+          .eq('unidade_id', selectedUnitId)
+          .eq('status', 'aguardando'),
+        'Fila de triagem'
+      );
       
       if (queueError) throw queueError;
       setQueue(queueData || []);
