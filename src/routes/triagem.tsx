@@ -129,6 +129,7 @@ function TriagemPage() {
         sintoma: symptoms,
         prioridade: result.priority,
         unidade: result.unit,
+        unidade_id: result.unit === "Clínica Sede (Ambulatório)" ? 1 : 2,
         especialidade: result.specialty,
         metodo: method,
         temperatura: vitals.temperature === "" ? null : vitals.temperature,

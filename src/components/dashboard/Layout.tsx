@@ -104,19 +104,19 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
       try {
         const { data: pacientes } = await supabase
           .from('pacientes')
-          .select('id, nome, nif')
-          .ilike('nome', `%${searchTerm}%`)
+          .select('id, nome_completo, nif')
+          .ilike('nome_completo', `%${searchTerm}%`)
           .limit(3);
           
-        const { data: medicos } = await supabase
-          .from('medicos')
-          .select('id, nome, especialidade')
-          .ilike('nome', `%${searchTerm}%`)
+        const { data: professionals } = await supabase
+          .from('professionals')
+          .select('id, full_name, specialty')
+          .ilike('full_name', `%${searchTerm}%`)
           .limit(2);
           
         const results = [
-          ...(pacientes?.map(p => ({ ...p, type: 'Paciente' })) || []),
-          ...(medicos?.map(m => ({ ...m, type: 'Médico' })) || [])
+          ...(pacientes?.map(p => ({ ...p, name: p.nome_completo, type: 'Paciente' })) || []),
+          ...(professionals?.map(m => ({ ...m, name: m.full_name, type: 'Médico' })) || [])
         ];
         setSearchResults(results);
       } catch (error) {

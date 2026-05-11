@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Activity, Calendar, Building2, QrCode, LayoutDashboard, UserCircle, MessageCircle, Video, BarChart3, Mic, Users, MapPin, HeartPulse, Smartphone, Receipt, Pill, FileHeart, ShieldCheck, Stethoscope, Headset, User, Siren, UserCheck } from "lucide-react";
 import { useRole, Unit } from "@/hooks/useRole";
 
+import logoImg from "@/assets/medicentro-logo.jpg";
+
 type Role = 'admin' | 'doctor' | 'reception' | 'patient';
 
 const roles = [
@@ -50,8 +52,8 @@ export function Sidebar({ className = "" }: { className?: string }) {
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-[var(--primary-glow)] to-primary" />
       <div className="px-6 py-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="size-11 rounded-xl bg-gradient-to-br from-primary to-[var(--primary-glow)] flex items-center justify-center shadow-[0_8px_24px_-8px_var(--primary)]">
-            <HeartPulse className="size-5 text-primary-foreground" />
+          <div className="size-11 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)]">
+            <img src={logoImg} alt="Logo" className="size-full object-cover" />
           </div>
           <div>
             <div className="font-bold tracking-tight text-base font-[var(--font-display)]">Medicentro</div>
