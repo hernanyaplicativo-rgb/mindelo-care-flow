@@ -39,9 +39,9 @@ export function DashboardLayout({ children, title, subtitle }: { children: React
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
   const currentLabel = segments.length === 0 ? "Recepção" : (ROUTE_LABELS[segments[0]] ?? segments[0]);
-  const connectionLabel = dbConnectionError?.replace("Erro de Conexão com a Base de Dados: ", "").replace("Erro Crítico de Rede: ", "");
 
   const [dbConnectionError, setDbConnectionError] = useState<string | null>(null);
+  const connectionLabel = dbConnectionError?.replace("Erro de Conexão com a Base de Dados: ", "").replace("Erro Crítico de Rede: ", "");
 
   // Ping de Base de Dados (Teste de Conetividade Local -> Supabase)
   useEffect(() => {
