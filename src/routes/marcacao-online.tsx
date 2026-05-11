@@ -131,6 +131,12 @@ function MarcacaoOnlinePage() {
         if (data) {
           setAppointmentId(data.id);
           setAppointmentStatus(data.status);
+
+          // Real Sending: WhatsApp Integration
+          const msg = `*Medicentro Mindelo — Confirmação de Consulta*%0A%0AOlá *${name}*, a sua consulta foi pré-registada!%0A%0A📍 *Unidade:* ${unit === "sede" ? "Sede (Madeiralzinho)" : "Monte Sossego"}%0A🩺 *Especialidade:* ${spec?.name}%0A👤 *Médico:* ${doctor}%0A📅 *Data:* ${day} às ${time}%0A%0A⚠️ Apresente este contacto na recepção ou utilize o QR Code no Quiosque.%0A%0A_Sistema Automático Medicentro_`;
+          
+          const whatsappUrl = `https://wa.me/238${phone.replace(/\s/g, '')}?text=${msg}`;
+          window.open(whatsappUrl, '_blank');
         }
       } catch (err) {
         console.error(err);
